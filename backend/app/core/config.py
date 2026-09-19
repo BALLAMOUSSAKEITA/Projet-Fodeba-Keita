@@ -1,6 +1,16 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _normalize_database_url(url: str) -> str:
+    """Convertit l'URL PostgreSQL Railway (postgresql://) en driver asyncpg."""
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url
 
 
 class Settings(BaseSettings):
@@ -31,6 +41,12 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = False
 
     CORS_ORIGINS: str = "http://localhost:3000"
+    PORT: int = 8000
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_db_url(cls, value: str) -> str:
+        return _normalize_database_url(value)
 
     @property
     def cors_origins_list(self) -> list[str]:

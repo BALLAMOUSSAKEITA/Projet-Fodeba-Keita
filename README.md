@@ -100,6 +100,15 @@ cp .env.production.example .env.production
 
 Monitoring : `docker compose -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml up -d`
 
+## Déploiement Railway (cloud)
+
+Guide complet : [`docs/DEPLOIEMENT_RAILWAY.md`](docs/DEPLOIEMENT_RAILWAY.md)
+
+1. Créer un projet Railway lié au dépôt GitHub
+2. Ajouter **PostgreSQL**
+3. Service **backend** (root: `backend`) + variables `SECRET_KEY`, `CORS_ORIGINS`
+4. Service **frontend** (root: `frontend`) + `NEXT_PUBLIC_API_URL` = URL du backend
+
 ## Documentation
 
 | Document | Description |
