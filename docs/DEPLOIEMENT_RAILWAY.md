@@ -77,20 +77,18 @@ Guide pas à pas pour héberger **backend**, **frontend** et **PostgreSQL** sur 
    - **Service name** : `sgep-web`
    - **Root Directory** : `frontend`
 
-3. **Variables** (recommandé — proxy intégré) :
+3. **Variables** :
 
 | Variable | Valeur |
 |----------|--------|
-| `API_BACKEND_URL` | URL publique du backend (sans slash final) |
+| `NEXT_PUBLIC_API_URL` | URL publique du backend (sans slash final) |
 | | ex. `https://sgep-api-production-xxxx.up.railway.app` |
 
-> Le frontend proxifie `/api/v1/*` vers le backend via `API_BACKEND_URL` (variable **runtime**, pas besoin de rebuild).
-
-> **Ne pas** laisser `NEXT_PUBLIC_API_URL=http://localhost:8000` — cela provoque « Réseau indisponible » en production.
+> **Important** : `NEXT_PUBLIC_API_URL` est lue au **build**. Après modification, redéployer le frontend (**Redeploy**).
 
 4. **Networking** → **Generate Domain**
 
-5. Retourner sur le **backend** → mettre à jour `CORS_ORIGINS` avec l'URL du frontend → **Redeploy** backend (optionnel avec le proxy, mais recommandé).
+5. Retourner sur le **backend** → mettre à jour `CORS_ORIGINS` avec l'URL du frontend → **Redeploy** backend.
 
 6. Ouvrir l'URL frontend → connexion :
    - `admin@fodebakeita.gn` / `admin123`
