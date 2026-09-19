@@ -8,11 +8,7 @@ import { SyncProvider } from "@/components/offline/SyncProvider";
 import { getUser } from "@/lib/auth/session";
 import type { UserInfo } from "@/types/auth";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
 
@@ -27,17 +23,19 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">Chargement...</p>
+      <div className="flex min-h-full flex-1 items-center justify-center bg-midnight-navy">
+        <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-silver-mist">
+          Chargement
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-full flex-1 bg-slate-50">
+    <div className="flex min-h-full flex-1 bg-midnight-navy">
       <SyncProvider />
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header user={user} />
         <main className="flex-1 p-6">{children}</main>
       </div>

@@ -19,9 +19,20 @@ function fmt(n: number | string) {
   return `${Math.round(Number(n)).toLocaleString("fr-FR")} GNF`;
 }
 
+function KpiSkeleton() {
+  return (
+    <div className="ws-kpi">
+      <div className="ws-skeleton h-3.5 w-28" />
+      <div className="ws-skeleton mt-4 h-9 w-20" />
+      <div className="ws-skeleton mt-3 h-3 w-32" />
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [kpi, setKpi] = useState<DashboardKPI | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const canReports = hasPermission("reports.view") || hasPermission("reports.view_pedagogical");
@@ -34,10 +45,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = getToken();
-    if (!token || !canReports) return;
+    if (!token || !canReports) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     getDashboardKPI(token)
       .then(setKpi)
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Erreur KPI"));
+      .catch((err) => setError(err instanceof ApiError ? err.message : "Erreur KPI"))
+      .finally(() => setLoading(false));
   }, [canReports]);
 
   const cards = kpi
@@ -46,92 +62,86 @@ export default function DashboardPage() {
         { label: "Classes actives", value: String(kpi.total_classes), hint: "Année en cours" },
         { label: "Recettes du mois", value: fmt(kpi.recettes_mois), hint: "Encaissements validés" },
         { label: "Impayés", value: fmt(kpi.total_impayes), hint: `${kpi.nombre_impayes} élève(s)` },
-        { label: "Personnel actif", value: String(kpi.total_personnel), hint: "Enseignants & staff" },
+        { label: "Personnel actif", value: String(kpi.total_personnel), hint: "Enseignants et staff" },
         {
           label: "Présence (mois)",
-          value: kpi.taux_presence_mois != null ? `${kpi.taux_presence_mois} %` : "—",
+          value: kpi.taux_presence_mois != null ? `${kpi.taux_presence_mois} %` : "Non renseigné",
           hint: "Taux global",
         },
       ]
-    : [
-        { label: "Élèves inscrits", value: "—", hint: "Chargement…" },
-        { label: "Classes actives", value: "—", hint: "Chargement…" },
-        { label: "Recettes du mois", value: "—", hint: "Chargement…" },
-        { label: "Impayés", value: "—", hint: "Chargement…" },
-      ];
+    : [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Tableau de bord</h2>
-          <p className="mt-1 text-slate-600">
-            Groupe Scolaire Privé Fodeba Keita — {kpi?.annee_libelle ?? "…"}
+          <p className="ws-link !normal-case !tracking-normal !text-[13px]">Vue d&apos;ensemble</p>
+          <h2 className="mt-2 font-display text-[40px] font-light tracking-[-0.8px] text-canvas-white">
+            Indicateurs clés
+          </h2>
+          <p className="mt-2 text-[16px] text-silver-mist">
+            {kpi?.annee_libelle ?? "Chargement des données de l'année scolaire"}
           </p>
         </div>
         {canReports && (
-          <Link
-            href="/dashboard/rapports"
-            className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
-          >
+          <Link href="/dashboard/rapports" className="ws-btn-primary inline-block">
             Voir les rapports
           </Link>
         )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-sm text-slate-500">{card.label}</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{card.value}</p>
-            <p className="mt-1 text-xs text-emerald-600">{card.hint}</p>
-          </div>
-        ))}
+        {loading && canReports
+          ? Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)
+          : cards.map((card) => (
+              <div key={card.label} className="ws-kpi">
+                <p className="text-[14px] text-silver-mist">{card.label}</p>
+                <p className="mt-2 font-display text-[32px] font-light tracking-[-0.5px] text-canvas-white">
+                  {card.value}
+                </p>
+                <p className="mt-2 text-[12px] text-bioluminescent-teal">{card.hint}</p>
+              </div>
+            ))}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-900">État des services</h3>
-        <p className="mt-1 text-sm text-slate-500">
-          Vérification de la connexion avec le backend FastAPI
-        </p>
+      <hr className="ws-divider" />
+
+      <div className="ws-card">
+        <h3 className="font-display text-[28px] font-light tracking-[-0.56px] text-canvas-white">
+          État des services
+        </h3>
+        <p className="mt-1 text-[14px] text-silver-mist">Backend FastAPI et services associés</p>
 
         {error && (
-          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error} — Lancez <code className="font-mono">docker compose up -d</code>
+          <div className="ws-error mt-4">
+            {error}. Lancez <code className="font-mono">docker compose up -d</code> en local.
           </div>
         )}
 
-        {health && (
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+        {health ? (
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
             <StatusItem label="API" value={health.status} ok={health.status === "ok"} />
             <StatusItem label="Environnement" value={health.environment} ok />
             <StatusItem label="PostgreSQL" value={health.database} ok={health.database === "ok"} />
             <StatusItem label="Redis" value={health.redis} ok={health.redis === "ok"} />
           </dl>
+        ) : (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="ws-skeleton h-[52px]" />
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function StatusItem({
-  label,
-  value,
-  ok,
-}: {
-  label: string;
-  value: string;
-  ok: boolean;
-}) {
+function StatusItem({ label, value, ok }: { label: string; value: string; ok: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-      <dt className="text-sm text-slate-600">{label}</dt>
-      <dd
-        className={`text-sm font-medium ${ok ? "text-emerald-700" : "text-amber-700"}`}
-      >
+    <div className="flex items-center justify-between rounded-md border border-silver-mist/20 bg-midnight-navy px-4 py-3">
+      <dt className="text-[14px] text-silver-mist">{label}</dt>
+      <dd className={`text-[14px] font-medium capitalize ${ok ? "text-bioluminescent-teal" : "text-bubblegum"}`}>
         {value}
       </dd>
     </div>

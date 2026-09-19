@@ -1,11 +1,11 @@
 {
-  "name": "SGEP — Groupe Scolaire Privé Fodeba Keita",
+  "name": "SGEP · Groupe Scolaire Privé Fodeba Keita",
   "short_name": "SGEP",
-  "description": "Gestion scolaire maternelle et primaire — Conakry",
+  "description": "Gestion scolaire maternelle et primaire à Conakry",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#047857",
+  "background_color": "#011c42",
+  "theme_color": "#34e8bb",
   "lang": "fr",
   "orientation": "any",
   "icons": [

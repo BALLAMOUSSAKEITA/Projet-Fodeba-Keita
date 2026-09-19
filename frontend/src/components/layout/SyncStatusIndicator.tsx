@@ -44,14 +44,11 @@ export function SyncStatusIndicator() {
       setOnline(false);
       setStatus("offline");
     };
-    const onQueueChange = () => {
-      void refreshPending();
-    };
+    const onQueueChange = () => void refreshPending();
 
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     window.addEventListener("sgep-sync-queue-changed", onQueueChange);
-
     return () => {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
@@ -62,33 +59,31 @@ export function SyncStatusIndicator() {
   const label = !online
     ? "Hors ligne"
     : status === "syncing"
-      ? "Synchronisation…"
+      ? "Sync"
       : pending > 0
         ? `${pending} en attente`
         : "En ligne";
 
-  const dotClass = !online
-    ? "bg-amber-500"
+  const dotColor = !online
+    ? "bg-silver-mist"
     : status === "syncing"
-      ? "bg-blue-500 animate-pulse"
+      ? "bg-cosmic-blue animate-pulse"
       : pending > 0
-        ? "bg-orange-500"
+        ? "bg-bubblegum"
         : status === "error"
-          ? "bg-red-500"
-          : "bg-emerald-500";
+          ? "bg-red-400"
+          : "bg-bioluminescent-teal shadow-[0_0_8px_rgba(52,232,187,0.6)]";
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => void syncNow()}
-        disabled={!online || status === "syncing"}
-        className="flex items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-        title={lastMessage ?? "Forcer la synchronisation"}
-      >
-        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-        {label}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={() => void syncNow()}
+      disabled={!online || status === "syncing"}
+      className="ws-btn-ghost flex items-center gap-2 !px-3 !py-1.5 font-mono text-[11px] uppercase tracking-[0.05em]"
+      title={lastMessage ?? "Forcer la synchronisation"}
+    >
+      <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+      {label}
+    </button>
   );
 }
