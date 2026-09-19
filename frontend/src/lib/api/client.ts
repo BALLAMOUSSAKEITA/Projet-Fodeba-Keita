@@ -2,7 +2,13 @@ import { cacheGet, cacheSet } from "@/lib/offline/db";
 import { enqueueSyncOperation, parseOfflineMutation } from "@/lib/offline/sync-queue";
 import { isBrowserOnline } from "@/lib/offline/sync-engine";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** En production sans NEXT_PUBLIC_API_URL → proxy same-origin (/api/v1 → backend). */
+function getApiBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+  if (process.env.NODE_ENV === "production") return "";
+  return "http://localhost:8000";
+}
 
 export class ApiError extends Error {
   constructor(
@@ -57,7 +63,7 @@ export async function apiFetch<T>(
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
       ...options,
       headers,
     });
@@ -70,7 +76,8 @@ export async function apiFetch<T>(
       const item = await enqueueSyncOperation(offlineMutation.entityType, offlineMutation.payload);
       throw new OfflineQueuedError(item.id);
     }
-    throw new ApiError("Réseau indisponible", 503);
+    const hint = getApiBaseUrl() || "(proxy same-origin)";
+    throw new ApiError(`Réseau indisponible — API : ${hint}`, 503);
   }
 
   if (!response.ok) {
@@ -105,7 +112,7 @@ export async function apiDownload(
     throw new ApiError("Téléchargement indisponible hors ligne", 503);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

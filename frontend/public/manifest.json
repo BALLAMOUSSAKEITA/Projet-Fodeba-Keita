@@ -4,8 +4,8 @@
   "description": "Gestion scolaire maternelle et primaire — Conakry",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#047857",
+  "background_color": "#eaeaea",
+  "theme_color": "#1b1b1b",
   "lang": "fr",
   "orientation": "any",
   "icons": [
