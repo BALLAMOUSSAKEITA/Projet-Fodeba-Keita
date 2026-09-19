@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SGEP · Groupe Scolaire Privé Fodeba Keita",
+  title: "SGEP — Groupe Scolaire Privé Fodeba Keita",
   description:
-    "Plateforme de gestion scolaire maternelle et primaire à Conakry, Guinée",
+    "Plateforme de gestion scolaire maternelle et primaire — Conakry, Guinée",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
