@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-full flex-1 items-center justify-center bg-drafting-gray">
-      <p className="text-[14px] text-steel">Redirection...</p>
+      <p className="text-[14px] text-steel">Redirection</p>
     </div>
   );
 }

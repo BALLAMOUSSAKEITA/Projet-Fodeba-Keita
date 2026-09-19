@@ -41,7 +41,7 @@ async function proxyRequest(
     });
   } catch {
     return NextResponse.json(
-      { detail: "Backend inaccessible — vérifiez API_BACKEND_URL sur Railway" },
+      { detail: "Backend inaccessible. Vérifiez API_BACKEND_URL sur Railway." },
       { status: 502 },
     );
   }

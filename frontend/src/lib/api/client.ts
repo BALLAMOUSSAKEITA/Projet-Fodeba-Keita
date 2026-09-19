@@ -77,7 +77,7 @@ export async function apiFetch<T>(
       throw new OfflineQueuedError(item.id);
     }
     const hint = getApiBaseUrl() || "(proxy same-origin)";
-    throw new ApiError(`Réseau indisponible — API : ${hint}`, 503);
+    throw new ApiError(`Réseau indisponible (API : ${hint})`, 503);
   }
 
   if (!response.ok) {
