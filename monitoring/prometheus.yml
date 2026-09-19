@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: sgep-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
+        labels:
+          service: sgep-api
+          environment: production
+
+  - job_name: sgep-health
+    metrics_path: /api/v1/health
+    static_configs:
+      - targets: ["api:8000"]
+        labels:
+          service: sgep-health

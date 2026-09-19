@@ -1,0 +1,33 @@
+{
+  "title": "SGEP — Vue d'ensemble",
+  "uid": "sgep-overview",
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "API disponible",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sgep_up", "legendFormat": "up" }]
+    },
+    {
+      "title": "Base de données",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "sgep_database_up", "legendFormat": "db" }]
+    },
+    {
+      "title": "Élèves inscrits",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "sgep_eleves_total", "legendFormat": "élèves" }]
+    },
+    {
+      "title": "Comptes utilisateurs",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "sgep_users_total", "legendFormat": "users" }]
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

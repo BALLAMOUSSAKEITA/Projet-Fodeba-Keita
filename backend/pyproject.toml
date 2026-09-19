@@ -1,0 +1,23 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/db/seed*.py",
+    "app/db/seed.py",
+]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+skip_empty = true
+precision = 1
