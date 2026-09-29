@@ -1,11 +1,21 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { login } from "@/lib/api/auth";
 import { saveSession } from "@/lib/auth/session";
 import { ApiError } from "@/lib/api/client";
 import { Logo } from "@/components/layout/Logo";
+
+function SessionExpiredNotice() {
+  const searchParams = useSearchParams();
+  if (searchParams.get("session") !== "expired") return null;
+  return (
+    <div className="mb-5 rounded-[14px] border border-cloud bg-paper px-3 py-2 text-[14px] text-steel">
+      Votre session a expiré. Connectez-vous à nouveau.
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,6 +69,10 @@ export default function LoginPage() {
           <div className="aw-card mx-auto w-full max-w-md lg:ml-auto">
             <h2 className="aw-heading text-[32px]">Connexion</h2>
             <p className="mt-2 text-[14px] text-steel">Identifiants fournis par l&apos;administration</p>
+
+            <Suspense fallback={null}>
+              <SessionExpiredNotice />
+            </Suspense>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div>

@@ -13,7 +13,8 @@ export function saveSession(
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_KEY, refreshToken);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
-  document.cookie = `sgep_token=${accessToken}; path=/; max-age=3600; SameSite=Lax`;
+  // 7 jours — aligné sur la durée du refresh token côté API
+  document.cookie = `sgep_token=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
 }
 
 export function getToken(): string | null {
