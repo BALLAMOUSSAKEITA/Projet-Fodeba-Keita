@@ -21,10 +21,10 @@ function fmt(n: number | string) {
 
 function KpiSkeleton() {
   return (
-    <div className="ws-kpi">
-      <div className="ws-skeleton h-3.5 w-28" />
-      <div className="ws-skeleton mt-4 h-9 w-20" />
-      <div className="ws-skeleton mt-3 h-3 w-32" />
+    <div className="aw-kpi">
+      <div className="aw-skeleton h-3.5 w-28" />
+      <div className="aw-skeleton mt-4 h-10 w-24" />
+      <div className="aw-skeleton mt-3 h-3 w-32" />
     </div>
   );
 }
@@ -75,16 +75,16 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="ws-link !normal-case !tracking-normal !text-[13px]">Vue d&apos;ensemble</p>
-          <h2 className="mt-2 font-display text-[40px] font-light tracking-[-0.8px] text-canvas-white">
+          <span className="aw-badge-tag">Vue d&apos;ensemble</span>
+          <h2 className="mt-3 text-[40px] font-semibold leading-[1.28] text-obsidian">
             Indicateurs clés
           </h2>
-          <p className="mt-2 text-[16px] text-silver-mist">
+          <p className="mt-2 text-[15px] text-steel">
             {kpi?.annee_libelle ?? "Chargement des données de l'année scolaire"}
           </p>
         </div>
         {canReports && (
-          <Link href="/dashboard/rapports" className="ws-btn-primary inline-block">
+          <Link href="/dashboard/rapports" className="aw-btn-primary inline-block">
             Voir les rapports
           </Link>
         )}
@@ -94,27 +94,23 @@ export default function DashboardPage() {
         {loading && canReports
           ? Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)
           : cards.map((card) => (
-              <div key={card.label} className="ws-kpi">
-                <p className="text-[14px] text-silver-mist">{card.label}</p>
-                <p className="mt-2 font-display text-[32px] font-light tracking-[-0.5px] text-canvas-white">
-                  {card.value}
-                </p>
-                <p className="mt-2 text-[12px] text-bioluminescent-teal">{card.hint}</p>
+              <div key={card.label} className="aw-kpi">
+                <p className="text-[14px] text-steel">{card.label}</p>
+                <p className="aw-kpi-value mt-2">{card.value}</p>
+                <p className="mt-2 text-[12px] text-fog">{card.hint}</p>
               </div>
             ))}
       </div>
 
-      <hr className="ws-divider" />
+      <hr className="aw-divider" />
 
-      <div className="ws-card">
-        <h3 className="font-display text-[28px] font-light tracking-[-0.56px] text-canvas-white">
-          État des services
-        </h3>
-        <p className="mt-1 text-[14px] text-silver-mist">Backend FastAPI et services associés</p>
+      <div className="aw-card">
+        <h3 className="text-[28px] font-semibold leading-[1.28] text-obsidian">État des services</h3>
+        <p className="mt-1 text-[14px] text-steel">Backend FastAPI et services associés</p>
 
         {error && (
-          <div className="ws-error mt-4">
-            {error}. Lancez <code className="font-mono">docker compose up -d</code> en local.
+          <div className="aw-error mt-4">
+            {error}. Lancez <code className="font-mono text-[13px]">docker compose up -d</code> en local.
           </div>
         )}
 
@@ -128,7 +124,7 @@ export default function DashboardPage() {
         ) : (
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="ws-skeleton h-[52px]" />
+              <div key={i} className="aw-skeleton h-[52px]" />
             ))}
           </div>
         )}
@@ -139,9 +135,9 @@ export default function DashboardPage() {
 
 function StatusItem({ label, value, ok }: { label: string; value: string; ok: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-silver-mist/20 bg-midnight-navy px-4 py-3">
-      <dt className="text-[14px] text-silver-mist">{label}</dt>
-      <dd className={`text-[14px] font-medium capitalize ${ok ? "text-bioluminescent-teal" : "text-bubblegum"}`}>
+    <div className="flex items-center justify-between rounded-[14px] border border-cloud bg-paper px-4 py-3">
+      <dt className="text-[14px] text-steel">{label}</dt>
+      <dd className={`text-[14px] font-medium capitalize ${ok ? "text-graphite" : "text-ember"}`}>
         {value}
       </dd>
     </div>

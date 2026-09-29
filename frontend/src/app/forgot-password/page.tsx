@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { AuroraRibbon } from "@/components/ui/AuroraRibbon";
 import { Logo } from "@/components/layout/Logo";
 
 export default function ForgotPasswordPage() {
@@ -36,18 +35,17 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="relative flex min-h-full flex-1 items-center justify-center overflow-hidden bg-midnight-navy px-6 py-12">
-      <AuroraRibbon className="opacity-50" />
-      <div className="relative z-10 w-full max-w-md">
+    <div className="flex min-h-full flex-1 items-center justify-center bg-paper px-6 py-12">
+      <div className="w-full max-w-md">
         <Logo className="mb-8 justify-center" />
-        <div className="ws-card">
-          <h1 className="font-display text-[28px] font-light text-canvas-white">Mot de passe oublié</h1>
-          <p className="mt-2 text-[14px] text-silver-mist">
+        <div className="aw-card">
+          <h1 className="text-[28px] font-semibold text-obsidian">Mot de passe oublié</h1>
+          <p className="mt-2 text-[14px] text-steel">
             Entrez votre e-mail pour recevoir un lien de réinitialisation.
           </p>
           <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             <div>
-              <label htmlFor="email" className="ws-label">
+              <label htmlFor="email" className="aw-label">
                 Adresse e-mail
               </label>
               <input
@@ -56,29 +54,29 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="ws-input"
+                className="aw-input"
               />
             </div>
-            {error && <div className="ws-error">{error}</div>}
+            {error && <div className="aw-error">{error}</div>}
             {message && (
-              <div className="rounded-md border border-silver-mist/25 bg-midnight-navy px-3 py-2 text-[14px] text-warm-sand">
+              <div className="rounded-[14px] border border-cloud bg-paper px-3 py-2 text-[14px] text-graphite">
                 {message}
               </div>
             )}
             {resetToken && (
-              <div className="rounded-md border border-bubblegum/40 bg-lavender-mist/10 px-3 py-2 text-[14px] text-warm-sand">
-                <p className="font-medium">Mode développement</p>
-                <Link href={`/reset-password?token=${resetToken}`} className="ws-link mt-1 inline-block">
+              <div className="rounded-[14px] border border-cloud bg-paper px-3 py-2 text-[14px]">
+                <p className="font-medium text-graphite">Mode développement</p>
+                <Link href={`/reset-password?token=${resetToken}`} className="aw-link mt-1 inline-block">
                   Ouvrir la réinitialisation
                 </Link>
               </div>
             )}
-            <button type="submit" disabled={loading} className="ws-btn-primary w-full">
+            <button type="submit" disabled={loading} className="aw-btn-primary w-full">
               {loading ? "Envoi en cours" : "Envoyer le lien"}
             </button>
           </form>
           <p className="mt-6 text-center">
-            <Link href="/login" className="ws-link">
+            <Link href="/login" className="aw-link">
               Retour à la connexion
             </Link>
           </p>

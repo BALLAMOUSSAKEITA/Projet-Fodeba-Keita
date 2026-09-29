@@ -64,26 +64,26 @@ export function SyncStatusIndicator() {
         ? `${pending} en attente`
         : "En ligne";
 
-  const dotColor = !online
-    ? "bg-silver-mist"
+  const dotClass = !online
+    ? "bg-ash"
     : status === "syncing"
-      ? "bg-cosmic-blue animate-pulse"
+      ? "bg-fog animate-pulse"
       : pending > 0
-        ? "bg-bubblegum"
+        ? "bg-ember"
         : status === "error"
-          ? "bg-red-400"
-          : "bg-bioluminescent-teal shadow-[0_0_8px_rgba(52,232,187,0.6)]";
+          ? "bg-red-500"
+          : "bg-graphite";
 
   return (
     <button
       type="button"
       onClick={() => void syncNow()}
       disabled={!online || status === "syncing"}
-      className="ws-btn-ghost flex items-center gap-2 !px-3 !py-1.5 font-mono text-[11px] uppercase tracking-[0.05em]"
+      className="aw-badge-tag flex items-center gap-2 !py-1.5"
       title={lastMessage ?? "Forcer la synchronisation"}
     >
-      <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-      {label}
+      <span className={`h-2 w-2 rounded-full ${dotClass}`} />
+      <span className="text-[12px]">{label}</span>
     </button>
   );
 }

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { AuroraRibbon } from "@/components/ui/AuroraRibbon";
 import { Logo } from "@/components/layout/Logo";
 
 function ResetPasswordForm() {
@@ -40,13 +39,13 @@ function ResetPasswordForm() {
   }
 
   if (!token) {
-    return <div className="ws-error">Lien invalide. Demandez un nouveau lien.</div>;
+    return <div className="aw-error">Lien invalide. Demandez un nouveau lien.</div>;
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label htmlFor="password" className="ws-label">
+        <label htmlFor="password" className="aw-label">
           Nouveau mot de passe
         </label>
         <input
@@ -56,11 +55,11 @@ function ResetPasswordForm() {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="ws-input"
+          className="aw-input"
         />
       </div>
       <div>
-        <label htmlFor="confirm" className="ws-label">
+        <label htmlFor="confirm" className="aw-label">
           Confirmer le mot de passe
         </label>
         <input
@@ -70,11 +69,11 @@ function ResetPasswordForm() {
           minLength={8}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="ws-input"
+          className="aw-input"
         />
       </div>
-      {error && <div className="ws-error">{error}</div>}
-      <button type="submit" disabled={loading} className="ws-btn-primary w-full">
+      {error && <div className="aw-error">{error}</div>}
+      <button type="submit" disabled={loading} className="aw-btn-primary w-full">
         {loading ? "Enregistrement en cours" : "Réinitialiser le mot de passe"}
       </button>
     </form>
@@ -83,20 +82,19 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="relative flex min-h-full flex-1 items-center justify-center overflow-hidden bg-midnight-navy px-6 py-12">
-      <AuroraRibbon className="opacity-50" />
-      <div className="relative z-10 w-full max-w-md">
+    <div className="flex min-h-full flex-1 items-center justify-center bg-paper px-6 py-12">
+      <div className="w-full max-w-md">
         <Logo className="mb-8 justify-center" />
-        <div className="ws-card">
-          <h1 className="font-display text-[28px] font-light text-canvas-white">Nouveau mot de passe</h1>
-          <p className="mt-2 text-[14px] text-silver-mist">Minimum 8 caractères.</p>
+        <div className="aw-card">
+          <h1 className="text-[28px] font-semibold text-obsidian">Nouveau mot de passe</h1>
+          <p className="mt-2 text-[14px] text-steel">Minimum 8 caractères.</p>
           <div className="mt-6">
-            <Suspense fallback={<p className="text-silver-mist">Chargement</p>}>
+            <Suspense fallback={<p className="text-fog">Chargement</p>}>
               <ResetPasswordForm />
             </Suspense>
           </div>
           <p className="mt-6 text-center">
-            <Link href="/login" className="ws-link">
+            <Link href="/login" className="aw-link">
               Retour à la connexion
             </Link>
           </p>

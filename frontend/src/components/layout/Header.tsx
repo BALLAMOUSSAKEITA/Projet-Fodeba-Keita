@@ -21,27 +21,23 @@ export function Header({ user }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-silver-mist/20 bg-midnight-navy px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-cloud bg-snow px-6">
       <div>
-        <h1 className="font-display text-[28px] font-light leading-none tracking-[-0.56px] text-canvas-white">
-          {getPageTitle(pathname)}
-        </h1>
-        <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-silver-mist">
-          Année scolaire 2025-2026
-        </p>
+        <h1 className="text-[20px] font-semibold text-obsidian">{getPageTitle(pathname)}</h1>
+        <p className="text-[13px] text-steel">Année scolaire 2025-2026</p>
       </div>
 
       <div className="flex items-center gap-3">
         <SyncStatusIndicator />
         <div className="hidden items-center gap-3 sm:flex">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-silver-mist/35 text-[12px] font-semibold text-canvas-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-cloud bg-paper text-[12px] font-semibold text-graphite">
             {initials(user)}
           </div>
           <div className="text-right">
-            <p className="text-[14px] font-medium text-canvas-white">
+            <p className="text-[14px] font-medium text-graphite">
               {user.prenom} {user.nom}
             </p>
-            <p className="text-[12px] text-silver-mist">
+            <p className="text-[12px] text-fog">
               {ROLE_LABELS[user.role] ?? user.role.replace("_", " ")}
             </p>
           </div>
@@ -52,7 +48,7 @@ export function Header({ user }: HeaderProps) {
             clearSession();
             router.push("/login");
           }}
-          className="ws-btn-ghost !px-4 !py-2 text-[13px]"
+          className="aw-btn-neutral !py-2 text-[13px]"
         >
           Déconnexion
         </button>

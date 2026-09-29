@@ -23,16 +23,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-midnight-navy">
-        <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-silver-mist">
-          Chargement
-        </p>
+      <div className="flex min-h-full flex-1 items-center justify-center bg-paper">
+        <p className="text-[14px] text-fog">Chargement</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-full flex-1 bg-midnight-navy">
+    <div className="flex min-h-full flex-1 bg-paper">
       <SyncProvider />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
