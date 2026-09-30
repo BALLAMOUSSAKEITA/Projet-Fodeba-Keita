@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_permission
+from app.core.deps import get_current_user, require_any_permission, require_permission
 from app.models.user import User
 from app.schemas.common import MessageResponse
 from app.schemas.parametrage import (
@@ -166,11 +166,14 @@ async def list_classes(
     return await svc.list_classes(db, annee_scolaire_id)
 
 
+_CLASSE_WRITE = require_any_permission("settings.manage", "students.enroll")
+
+
 @router.post("/classes", response_model=ClasseResponse, status_code=status.HTTP_201_CREATED)
 async def create_classe(
     data: ClasseCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_permission("settings.manage")),
+    _: User = Depends(_CLASSE_WRITE),
 ):
     return await svc.create_classe(db, data)
 
@@ -180,7 +183,7 @@ async def update_classe(
     classe_id: UUID,
     data: ClasseUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_permission("settings.manage")),
+    _: User = Depends(_CLASSE_WRITE),
 ):
     return await svc.update_classe(db, classe_id, data)
 
@@ -189,7 +192,7 @@ async def update_classe(
 async def delete_classe(
     classe_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_permission("settings.manage")),
+    _: User = Depends(_CLASSE_WRITE),
 ):
     await svc.delete_classe(db, classe_id)
     return MessageResponse(message="Classe supprimée")

@@ -15,6 +15,7 @@ class ClasseBrief(BaseModel):
 class ClasseEffectifResponse(BaseModel):
     id: UUID
     nom: str
+    niveau_id: UUID
     niveau_code: str
     niveau_libelle: str
     capacite_max: int

@@ -58,6 +58,10 @@ export function hasPermission(code: string): boolean {
   return false;
 }
 
+export function canManageClasses(): boolean {
+  return hasPermission("settings.manage") || hasPermission("students.enroll");
+}
+
 export function clearSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);

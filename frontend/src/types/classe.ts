@@ -1,6 +1,7 @@
 export interface ClasseEffectif {
   id: string;
   nom: string;
+  niveau_id: string;
   niveau_code: string;
   niveau_libelle: string;
   capacite_max: number;

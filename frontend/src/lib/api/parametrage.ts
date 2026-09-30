@@ -78,6 +78,22 @@ export async function listReferentiels(token: string, type: string) {
   return apiFetch<Referentiel[]>(`${base}/referentiels/${type}`, {}, token);
 }
 
+export async function createClasse(
+  token: string,
+  data: {
+    nom: string;
+    capacite_max: number;
+    salle?: string;
+    niveau_id: string;
+    annee_scolaire_id: string;
+  },
+) {
+  return apiFetch<Classe>(`${base}/classes`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  }, token);
+}
+
 export async function updateClasse(token: string, id: string, data: Partial<Classe>) {
   return apiFetch<Classe>(`${base}/classes/${id}`, {
     method: "PATCH",

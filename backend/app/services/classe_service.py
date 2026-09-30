@@ -45,6 +45,7 @@ async def get_classe_effectifs(db: AsyncSession, annee_id: UUID | None = None) -
             ClasseEffectifResponse(
                 id=classe.id,
                 nom=classe.nom,
+                niveau_id=classe.niveau_id,
                 niveau_code=classe.niveau.code,
                 niveau_libelle=classe.niveau.libelle,
                 capacite_max=classe.capacite_max,
