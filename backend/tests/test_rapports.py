@@ -16,6 +16,15 @@ async def test_dashboard_kpi(client, admin_token):
 
 
 @pytest.mark.asyncio
+async def test_dashboard_kpi_any_authenticated_user(client, teacher_token):
+    r = await client.get(
+        "/api/v1/rapports/dashboard/kpi",
+        headers={"Authorization": f"Bearer {teacher_token}"},
+    )
+    assert r.status_code == 200
+
+
+@pytest.mark.asyncio
 async def test_rapport_effectifs(client, admin_token):
     r = await client.get(
         "/api/v1/rapports/effectifs",

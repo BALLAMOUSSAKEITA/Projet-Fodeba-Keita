@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import require_any_permission
+from app.core.deps import get_current_user, require_any_permission
 from app.models.user import User
 from app.schemas.comptabilite import RapportFinancierResponse
 from app.schemas.rapports import (
@@ -27,7 +27,7 @@ READ_PERMISSIONS = ("reports.view", "reports.view_pedagogical")
 @router.get("/dashboard/kpi", response_model=DashboardKPIResponse)
 async def dashboard_kpi(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_any_permission(*READ_PERMISSIONS)),
+    _: User = Depends(get_current_user),
 ):
     return await rapports_service.get_dashboard_kpis(db)
 
