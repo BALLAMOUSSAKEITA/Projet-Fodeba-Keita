@@ -40,14 +40,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (checking || !user) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-paper">
-        <p className="text-[14px] text-fog">Chargement</p>
+      <div className="flex min-h-full flex-1 items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-200 border-t-teal-600" />
+          <p className="text-[14px] text-slate-400">Chargement…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-full flex-1 bg-paper">
+    <div className="flex min-h-full flex-1 bg-slate-50">
       <SyncProvider />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
