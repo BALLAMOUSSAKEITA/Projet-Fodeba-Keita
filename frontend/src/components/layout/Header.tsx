@@ -23,14 +23,13 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
       <div>
-        <h1 className="text-[18px] font-semibold text-slate-900">{getPageTitle(pathname)}</h1>
-        <p className="text-[12px] text-slate-400">Année scolaire 2026-2027</p>
+        <h1 className="text-lg font-semibold text-slate-900">{getPageTitle(pathname)}</h1>
       </div>
 
       <div className="flex items-center gap-3">
         <SyncStatusIndicator />
         <div className="hidden items-center gap-3 sm:flex">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-600 text-[12px] font-bold text-white shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-xs font-semibold text-white">
             {initials(user)}
           </div>
           <div className="text-right">

@@ -18,10 +18,6 @@ export function Sidebar() {
     <aside className="flex w-[260px] shrink-0 flex-col bg-slate-900">
       <div className="px-5 py-5">
         <Logo />
-        <span className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-teal-700/20 px-3 py-1 text-[12px] font-semibold text-teal-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
-          2026-2027
-        </span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
@@ -56,7 +52,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-700/50 px-5 py-4">
-        <p className="text-[12px] text-slate-500">📍 Conakry, Guinée</p>
+        <p className="text-xs text-slate-500">Conakry, Guinée</p>
       </div>
     </aside>
   );

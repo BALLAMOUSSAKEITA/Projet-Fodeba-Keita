@@ -10,7 +10,7 @@ export function Logo({ className = "", size = "md" }: LogoProps) {
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`${iconSize} flex items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 shadow-sm`}>
+      <div className={`${iconSize} flex items-center justify-center rounded-lg bg-teal-600`}>
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
           <path
             d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"
@@ -33,7 +33,7 @@ export function Logo({ className = "", size = "md" }: LogoProps) {
 export function LogoLight({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 shadow-sm">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-600">
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
           <path
             d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"

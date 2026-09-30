@@ -24,9 +24,9 @@ export function CrudActions({
           type="button"
           onClick={onEdit}
           disabled={disabled}
-          className="rounded-md px-2.5 py-1 text-[13px] font-medium text-teal-600 transition hover:bg-teal-50 disabled:opacity-50"
+          className="text-sm font-medium text-teal-700 hover:underline disabled:opacity-50"
         >
-          ✏️ {editLabel}
+          {editLabel}
         </button>
       )}
       {onDelete && (
@@ -34,9 +34,9 @@ export function CrudActions({
           type="button"
           onClick={onDelete}
           disabled={disabled}
-          className="rounded-md px-2.5 py-1 text-[13px] font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-50"
+          className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
         >
-          🗑️ {deleteLabel}
+          {deleteLabel}
         </button>
       )}
     </div>

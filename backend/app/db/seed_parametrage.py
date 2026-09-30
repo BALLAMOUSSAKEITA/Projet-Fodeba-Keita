@@ -104,7 +104,7 @@ async def seed_parametrage(db: AsyncSession) -> None:
     db.add(etab)
 
     annee = AnneeScolaire(
-        libelle="2026-2027",
+        libelle="Année scolaire active",
         date_debut=date(2026, 9, 15),
         date_fin=date(2027, 7, 15),
         statut=StatutAnneeScolaire.ACTIVE.value,

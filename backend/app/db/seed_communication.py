@@ -17,7 +17,7 @@ MODELES = [
 ]
 
 ANNONCES = [
-    ("Rentrée scolaire 2026-2027", "La rentrée des classes est fixée au lundi 5 octobre 2026. Accueil à 7h30.", AudienceAnnonce.TOUS.value),
+    ("Rentrée scolaire", "La rentrée des classes — accueil à 7h30.", AudienceAnnonce.TOUS.value),
     ("Réunion parents — CP", "Réunion d'information pour les parents de CP le vendredi 15 novembre à 16h.", AudienceAnnonce.PARENTS.value),
 ]
 

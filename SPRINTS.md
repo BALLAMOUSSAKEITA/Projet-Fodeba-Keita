@@ -28,7 +28,7 @@
 | 1 | Conception UX/UI & architecture | ⬜ | | | |
 | 2 | Setup technique & fondations | ✅ | 2026-09-16 | 2026-09-16 | Code prêt — lancer Docker Desktop pour staging |
 | 3 | Authentification & utilisateurs | ✅ | 2026-09-16 | 2026-09-16 | Auth réelle + RBAC |
-| 4 | Paramétrage de l'établissement | ✅ | 2026-09-16 | 2026-09-16 | Fodeba Keita 2026-2027 |
+| 4 | Paramétrage de l'établissement | ✅ | 2026-09-16 | 2026-09-16 | Fodeba Keita |
 | 5 | Gestion des élèves (partie 1) | ✅ | 2026-09-16 | 2026-09-16 | Inscriptions + matricule auto |
 | 6 | Élèves (partie 2) & classes | ✅ | 2026-09-16 | 2026-09-16 | Affectations, transferts, PDF |
 | 7 | Enseignants & personnel | ✅ | 2026-09-16 | 2026-09-16 | Annuaire, affectations, congés |
@@ -197,7 +197,7 @@
 
 ### Livrable clé
 
-- [x] École paramétrée pour l'année 2026–2027
+- [x] École paramétrée pour l'année scolaire active
 
 ---
 
@@ -712,7 +712,7 @@ Utilisez cette section pour noter les décisions, blocages et rétrospectives.
 - Modèles CategorieDepense, Depense, BudgetLigne, CompteTresorerie, EcritureComptable
 - API `/comptabilite` — dépenses (workflow brouillon→soumise→validée/refusée), budget, journal, trésorerie, rapports
 - Sync recettes depuis paiements validés ; écritures auto à la validation des dépenses
-- Seed : 7 catégories, comptes caisse/banque, budget 2026-2027
+- Seed : 7 catégories, comptes caisse/banque, budget annuel
 - Page `/dashboard/comptabilite` — saisie, validation, budget, rapports CSV/Excel, trésorerie
 - 81 tests backend passent (dont 5 Sprint 14)
 
@@ -795,7 +795,7 @@ Utilisez cette section pour noter les décisions, blocages et rétrospectives.
 #### Notes / décisions — Sprint 4
 
 - API `/parametrage/*` — établissement, années, niveaux, classes, matières, périodes, barème, frais, calendrier, référentiels
-- Seed auto : GSP Fodeba Keita, année 2026-2027, 9 niveaux, 10 classes, 10 matières, 3 trimestres, 7 types de frais
+- Seed auto : GSP Fodeba Keita, année scolaire active, 9 niveaux, 10 classes, 10 matières, 3 trimestres, 7 types de frais
 - Page `/dashboard/parametres` avec onglets
 
 #### Notes / décisions — Sprint 3

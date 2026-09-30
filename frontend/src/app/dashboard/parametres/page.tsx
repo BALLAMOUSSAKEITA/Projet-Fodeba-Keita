@@ -214,7 +214,7 @@ export default function ParametresPage() {
 
       {statut?.pret_pour_inscriptions && (
         <div className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          Configuration complète — l&apos;école est prête pour les inscriptions (rentrée 2026–2027).
+          Configuration complète — l&apos;école est prête pour les inscriptions.
         </div>
       )}
 
@@ -238,7 +238,7 @@ export default function ParametresPage() {
       {tab === "overview" && statut && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Établissement" value={statut.etablissement_configure ? "OK" : "—"} />
-          <StatCard label="Année active" value={statut.annee_active ? (anneeActive?.libelle ?? "2026-2027") : "—"} />
+          <StatCard label="Année active" value={statut.annee_active ? (anneeActive?.libelle ?? "—") : "—"} />
           <StatCard label="Niveaux" value={String(statut.niveaux_count)} />
           <StatCard label="Classes" value={String(statut.classes_count)} />
           <StatCard label="Matières" value={String(statut.matieres_count)} />

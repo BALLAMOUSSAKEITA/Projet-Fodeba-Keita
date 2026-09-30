@@ -33,7 +33,7 @@ async def test_get_annee_active(client, admin_token):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200
-    assert response.json()["libelle"] == "2026-2027"
+    assert response.json()["libelle"] == "Année scolaire active"
     assert response.json()["is_active"] is True
 
 
