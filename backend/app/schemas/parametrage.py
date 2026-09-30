@@ -42,7 +42,7 @@ class EtablissementResponse(EtablissementBase):
 
 
 class AnneeScolaireCreate(BaseModel):
-    libelle: str = Field(..., examples=["2025-2026"])
+    libelle: str = Field(..., examples=["2026-2027"])
     date_debut: date
     date_fin: date
 

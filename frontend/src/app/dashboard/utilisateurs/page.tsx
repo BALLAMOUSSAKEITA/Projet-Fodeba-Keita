@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { createUser, listRoles, listUsers } from "@/lib/api/auth";
+import { createUser, deactivateUser, listRoles, listUsers, updateUser } from "@/lib/api/auth";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { CrudActions } from "@/components/ui/CrudActions";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/auth/session";
@@ -14,6 +16,18 @@ export default function UsersAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
+  const [editForm, setEditForm] = useState({
+    email: "",
+    nom: "",
+    prenom: "",
+    telephone: "",
+    role_id: "",
+    is_active: true,
+    password: "",
+  });
+  const [deactivateId, setDeactivateId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -55,6 +69,43 @@ export default function UsersAdminPage() {
       loadData();
     }
   }, [canManage, canCreate, loadData]);
+
+  function openEdit(user: UserAccount) {
+    setEditingUser(user);
+    setEditForm({
+      email: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+      telephone: user.telephone ?? "",
+      role_id: user.role.id,
+      is_active: user.is_active,
+      password: "",
+    });
+  }
+
+  async function handleUpdate(event: FormEvent) {
+    event.preventDefault();
+    const token = getToken();
+    if (!token || !editingUser) return;
+    setSaving(true);
+    try {
+      await updateUser(token, editingUser.id, {
+        email: editForm.email,
+        nom: editForm.nom,
+        prenom: editForm.prenom,
+        telephone: editForm.telephone || undefined,
+        role_id: editForm.role_id,
+        is_active: editForm.is_active,
+        password: editForm.password || undefined,
+      });
+      setEditingUser(null);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur de mise à jour");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -107,6 +158,30 @@ export default function UsersAdminPage() {
 
       {error && (
         <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+      )}
+
+      {editingUser && canManage && (
+        <form onSubmit={handleUpdate} className="grid gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2">
+          <h3 className="md:col-span-2 font-semibold text-slate-900">Modifier {editingUser.prenom} {editingUser.nom}</h3>
+          <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="E-mail" />
+          <input value={editForm.telephone} onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Téléphone" />
+          <input required value={editForm.nom} onChange={(e) => setEditForm({ ...editForm, nom: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Nom" />
+          <input required value={editForm.prenom} onChange={(e) => setEditForm({ ...editForm, prenom: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Prénom" />
+          <select required value={editForm.role_id} onChange={(e) => setEditForm({ ...editForm, role_id: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>{role.label}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={editForm.is_active} onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })} />
+            Compte actif
+          </label>
+          <input type="password" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} className="md:col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Nouveau mot de passe (optionnel)" />
+          <div className="md:col-span-2 flex gap-2">
+            <button type="submit" disabled={saving} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">Enregistrer</button>
+            <button type="button" onClick={() => setEditingUser(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm">Annuler</button>
+          </div>
+        </form>
       )}
 
       {showForm && (
@@ -196,18 +271,19 @@ export default function UsersAdminPage() {
               <th className="px-4 py-3 font-medium">E-mail</th>
               <th className="px-4 py-3 font-medium">Rôle</th>
               <th className="px-4 py-3 font-medium">Statut</th>
+              {canManage && <th className="px-4 py-3 font-medium"></th>}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+                <td colSpan={canManage ? 5 : 4} className="px-4 py-6 text-center text-slate-500">
                   Chargement...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+                <td colSpan={canManage ? 5 : 4} className="px-4 py-6 text-center text-slate-500">
                   Aucun utilisateur trouvé
                 </td>
               </tr>
@@ -232,12 +308,45 @@ export default function UsersAdminPage() {
                       {user.is_active ? "Actif" : "Inactif"}
                     </span>
                   </td>
+                  {canManage && (
+                    <td className="px-4 py-3">
+                      <CrudActions
+                        onEdit={() => openEdit(user)}
+                        onDelete={user.is_active ? () => setDeactivateId(user.id) : undefined}
+                        deleteLabel="Désactiver"
+                      />
+                    </td>
+                  )}
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!deactivateId}
+        title="Désactiver ce compte ?"
+        message="L'utilisateur ne pourra plus se connecter."
+        confirmLabel="Désactiver"
+        danger
+        loading={saving}
+        onCancel={() => setDeactivateId(null)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token || !deactivateId) return;
+          setSaving(true);
+          try {
+            await deactivateUser(token, deactivateId);
+            setDeactivateId(null);
+            await loadData();
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
     </div>
   );
 }

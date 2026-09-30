@@ -34,6 +34,21 @@ export async function archiverAnnonce(token: string, annonceId: string) {
   return apiFetch<Annonce>(`${base}/annonces/${annonceId}/archiver`, { method: "POST" }, token);
 }
 
+export async function updateAnnonce(
+  token: string,
+  annonceId: string,
+  data: Partial<{ titre: string; contenu: string; audience: string; date_expiration?: string }>,
+) {
+  return apiFetch<Annonce>(`${base}/annonces/${annonceId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteAnnonce(token: string, annonceId: string) {
+  return apiFetch<void>(`${base}/annonces/${annonceId}`, { method: "DELETE" }, token);
+}
+
 export async function listModelesMessages(token: string) {
   return apiFetch<ModeleMessage[]>(`${base}/modeles`, {}, token);
 }

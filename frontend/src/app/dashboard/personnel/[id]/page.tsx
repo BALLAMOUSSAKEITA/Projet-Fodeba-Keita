@@ -11,7 +11,9 @@ import {
   getPersonnel,
   setTitulaire,
   updateCongeStatut,
+  updatePersonnel,
 } from "@/lib/api/personnel";
+import { CrudActions } from "@/components/ui/CrudActions";
 import { listClasses, listMatieres } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
@@ -38,6 +40,13 @@ export default function PersonnelDetailPage() {
   const [classes, setClasses] = useState<Classe[]>([]);
   const [matieres, setMatieres] = useState<Matiere[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [infoForm, setInfoForm] = useState({
+    telephone: "",
+    email: "",
+    specialite: "",
+    fonction: "",
+  });
   const canManage = hasPermission("personnel.manage");
 
   const load = useCallback(async () => {
@@ -50,6 +59,12 @@ export default function PersonnelDetailPage() {
         listMatieres(token),
       ]);
       setPersonnel(data);
+      setInfoForm({
+        telephone: data.telephone ?? "",
+        email: data.email ?? "",
+        specialite: data.specialite ?? "",
+        fonction: data.fonction ?? "",
+      });
       setClasses(classesData);
       setMatieres(matieresData);
     } catch (err) {
@@ -100,14 +115,45 @@ export default function PersonnelDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 font-semibold">Informations</h3>
-          <dl className="space-y-2 text-sm">
-            <Row label="Téléphone" value={personnel.telephone} />
-            <Row label="Email" value={personnel.email} />
-            <Row label="Spécialité" value={personnel.specialite} />
-            <Row label="Date embauche" value={personnel.date_embauche} />
-            <Row label="Statut" value={personnel.statut} />
-          </dl>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold">Informations</h3>
+            {canManage && (
+              <CrudActions onEdit={() => setEditingInfo((v) => !v)} editLabel={editingInfo ? "Annuler" : "Modifier"} />
+            )}
+          </div>
+          {editingInfo && canManage ? (
+            <form
+              className="space-y-3 text-sm"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const token = getToken();
+                if (!token) return;
+                reload(() =>
+                  updatePersonnel(token, id, {
+                    telephone: infoForm.telephone,
+                    email: infoForm.email || undefined,
+                    specialite: infoForm.specialite || undefined,
+                    fonction: infoForm.fonction || undefined,
+                  }),
+                );
+                setEditingInfo(false);
+              }}
+            >
+              <input value={infoForm.telephone} onChange={(e) => setInfoForm({ ...infoForm, telephone: e.target.value })} className="w-full rounded-lg border px-3 py-2" placeholder="Téléphone" />
+              <input value={infoForm.email} onChange={(e) => setInfoForm({ ...infoForm, email: e.target.value })} className="w-full rounded-lg border px-3 py-2" placeholder="E-mail" />
+              <input value={infoForm.specialite} onChange={(e) => setInfoForm({ ...infoForm, specialite: e.target.value })} className="w-full rounded-lg border px-3 py-2" placeholder="Spécialité" />
+              <input value={infoForm.fonction} onChange={(e) => setInfoForm({ ...infoForm, fonction: e.target.value })} className="w-full rounded-lg border px-3 py-2" placeholder="Fonction" />
+              <button type="submit" className="rounded-lg bg-emerald-700 px-4 py-2 text-sm text-white">Enregistrer</button>
+            </form>
+          ) : (
+            <dl className="space-y-2 text-sm">
+              <Row label="Téléphone" value={personnel.telephone} />
+              <Row label="Email" value={personnel.email} />
+              <Row label="Spécialité" value={personnel.specialite} />
+              <Row label="Date embauche" value={personnel.date_embauche} />
+              <Row label="Statut" value={personnel.statut} />
+            </dl>
+          )}
         </section>
 
         {isEnseignant && personnel.classes_titulaire.length > 0 && (

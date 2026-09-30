@@ -77,11 +77,11 @@ REFERENTIELS = {
     ],
 }
 
-CALENDRIER_2025 = [
-    ("Fête de l'Indépendance", date(2025, 10, 2), date(2025, 10, 2), TypeCalendrier.FERIE),
-    ("Vacances de Noël", date(2025, 12, 20), date(2026, 1, 5), TypeCalendrier.VACANCE),
-    ("Vacances de Pâques", date(2026, 4, 6), date(2026, 4, 20), TypeCalendrier.VACANCE),
-    ("Grands vacances", date(2026, 7, 1), date(2026, 9, 15), TypeCalendrier.VACANCE),
+CALENDRIER_2026_2027 = [
+    ("Fête de l'Indépendance", date(2026, 10, 2), date(2026, 10, 2), TypeCalendrier.FERIE),
+    ("Vacances de Noël", date(2026, 12, 20), date(2027, 1, 5), TypeCalendrier.VACANCE),
+    ("Vacances de Pâques", date(2027, 4, 6), date(2027, 4, 20), TypeCalendrier.VACANCE),
+    ("Grands vacances", date(2027, 7, 1), date(2027, 9, 15), TypeCalendrier.VACANCE),
 ]
 
 
@@ -104,9 +104,9 @@ async def seed_parametrage(db: AsyncSession) -> None:
     db.add(etab)
 
     annee = AnneeScolaire(
-        libelle="2025-2026",
-        date_debut=date(2025, 9, 15),
-        date_fin=date(2026, 7, 15),
+        libelle="2026-2027",
+        date_debut=date(2026, 9, 15),
+        date_fin=date(2027, 7, 15),
         statut=StatutAnneeScolaire.ACTIVE.value,
         is_active=True,
     )
@@ -147,9 +147,9 @@ async def seed_parametrage(db: AsyncSession) -> None:
         )
 
     periodes = [
-        ("1er Trimestre", date(2025, 9, 15), date(2025, 12, 19), 1),
-        ("2e Trimestre", date(2026, 1, 6), date(2026, 3, 31), 2),
-        ("3e Trimestre", date(2026, 4, 21), date(2026, 7, 15), 3),
+        ("1er Trimestre", date(2026, 9, 15), date(2026, 12, 18), 1),
+        ("2e Trimestre", date(2027, 1, 6), date(2027, 3, 31), 2),
+        ("3e Trimestre", date(2027, 4, 21), date(2027, 7, 15), 3),
     ]
     for libelle, debut, fin, ordre in periodes:
         db.add(
@@ -175,7 +175,7 @@ async def seed_parametrage(db: AsyncSession) -> None:
     for code, libelle, desc in TYPES_FRAIS:
         db.add(TypeFrais(code=code, libelle=libelle, description=desc, actif=True))
 
-    for libelle, debut, fin, type_cal in CALENDRIER_2025:
+    for libelle, debut, fin, type_cal in CALENDRIER_2026_2027:
         db.add(
             CalendrierScolaire(
                 libelle=libelle,

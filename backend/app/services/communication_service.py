@@ -17,6 +17,7 @@ from app.models.user import User
 from app.schemas.communication import (
     AnnonceCreate,
     AnnonceResponse,
+    AnnonceUpdate,
     EnvoiMessageCreate,
     HistoriqueResponse,
     ModeleMessageCreate,
@@ -91,6 +92,29 @@ async def create_annonce(
     await db.commit()
     await db.refresh(annonce)
     return await _annonce_to_response(db, annonce)
+
+
+async def update_annonce(
+    db: AsyncSession, annonce_id: UUID, data: AnnonceUpdate
+) -> AnnonceResponse:
+    annonce = await db.get(Annonce, annonce_id)
+    if annonce is None:
+        raise HTTPException(status_code=404, detail="Annonce introuvable")
+    if annonce.statut == StatutAnnonce.ARCHIVEE.value:
+        raise HTTPException(status_code=400, detail="Annonce archivée — modification impossible")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(annonce, field, value)
+    await db.commit()
+    await db.refresh(annonce)
+    return await _annonce_to_response(db, annonce)
+
+
+async def delete_annonce(db: AsyncSession, annonce_id: UUID) -> None:
+    annonce = await db.get(Annonce, annonce_id)
+    if annonce is None:
+        raise HTTPException(status_code=404, detail="Annonce introuvable")
+    await db.delete(annonce)
+    await db.commit()
 
 
 async def publier_annonce(db: AsyncSession, annonce_id: UUID) -> AnnonceResponse:

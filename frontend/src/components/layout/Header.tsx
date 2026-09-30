@@ -24,7 +24,7 @@ export function Header({ user }: HeaderProps) {
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-cloud bg-snow px-6">
       <div>
         <h1 className="text-[20px] font-semibold text-obsidian">{getPageTitle(pathname)}</h1>
-        <p className="text-[13px] text-steel">Année scolaire 2025-2026</p>
+        <p className="text-[13px] text-steel">Année scolaire 2026-2027</p>
       </div>
 
       <div className="flex items-center gap-3">

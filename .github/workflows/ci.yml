@@ -1,4 +1,4 @@
-name: CI SGEP
+name: CI GSP
 
 on:
   push:

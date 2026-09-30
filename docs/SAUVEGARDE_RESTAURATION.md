@@ -1,4 +1,4 @@
-# Sauvegarde et restauration — SGEP Fodeba Keita
+# Sauvegarde et restauration — GSP Fodeba Keita
 
 ## Sauvegarde quotidienne
 
@@ -25,7 +25,7 @@ Les fichiers sont stockés dans `backend/backups/`.
 
 ## Restauration
 
-1. Arrêter l'API SGEP.
+1. Arrêter l'API GSP.
 2. Restaurer la base :
 
 ```bash

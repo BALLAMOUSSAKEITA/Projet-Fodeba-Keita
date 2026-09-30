@@ -451,7 +451,7 @@ async def get_rapport_financier(
 def export_rapport_csv(rapport: RapportFinancierResponse, journal: list[EcritureResponse]) -> bytes:
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
-    writer.writerow(["Rapport financier SGEP"])
+    writer.writerow(["Rapport financier GSP"])
     writer.writerow(["Période", f"{rapport.periode_debut} → {rapport.periode_fin}"])
     writer.writerow(["Total recettes", str(rapport.total_recettes)])
     writer.writerow(["Total dépenses", str(rapport.total_depenses)])

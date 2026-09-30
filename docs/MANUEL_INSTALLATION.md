@@ -1,6 +1,6 @@
 # L6 — Manuel d'installation et déploiement
 
-**SGEP — Groupe Scolaire Privé Fodeba Keita**  
+**GSP — Groupe scolaire privé Fodeba Keita**  
 **Version :** MVP 1.0
 
 ---

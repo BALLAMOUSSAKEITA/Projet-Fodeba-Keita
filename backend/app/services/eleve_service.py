@@ -6,6 +6,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.audit import HistoriqueNote, HistoriquePaiement
+from app.models.bulletins import DecisionPassage, EvaluationCompetence
 from app.models.eleve import (
     Eleve,
     Inscription,
@@ -15,6 +17,8 @@ from app.models.eleve import (
     TypeInscription,
     TypeTransfert,
 )
+from app.models.notes import Note
+from app.models.paiements import Paiement
 from app.models.parametrage import AnneeScolaire, Niveau
 from app.schemas.eleve import (
     EffectifNiveauStat,
@@ -224,6 +228,41 @@ async def update_eleve(db: AsyncSession, eleve_id: UUID, data: EleveUpdate) -> E
         setattr(eleve, field, value)
     await db.flush()
     return await get_eleve(db, eleve_id)
+
+
+async def _count_for_eleve(db: AsyncSession, model, eleve_id: UUID) -> int:
+    return (
+        await db.execute(
+            select(func.count()).select_from(model).where(model.eleve_id == eleve_id)
+        )
+    ).scalar_one()
+
+
+async def delete_eleve(db: AsyncSession, eleve_id: UUID) -> None:
+    eleve = await get_eleve(db, eleve_id)
+    blocking: list[str] = []
+    checks: list[tuple[str, type]] = [
+        ("notes", Note),
+        ("paiements", Paiement),
+        ("historique de notes", HistoriqueNote),
+        ("historique de paiements", HistoriquePaiement),
+        ("évaluations maternelle", EvaluationCompetence),
+        ("décisions de passage", DecisionPassage),
+    ]
+    for label, model in checks:
+        if await _count_for_eleve(db, model, eleve_id) > 0:
+            blocking.append(label)
+    if blocking:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Suppression impossible : "
+                + ", ".join(blocking)
+                + ". Désactivez l'élève ou supprimez d'abord les données liées."
+            ),
+        )
+    await db.delete(eleve)
+    await db.flush()
 
 
 async def reinscrire_eleve(

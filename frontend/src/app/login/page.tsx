@@ -49,7 +49,7 @@ export default function LoginPage() {
         <div className="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
             <Logo className="mb-8" />
-            <span className="aw-badge-ember">Rentrée 2025-2026</span>
+            <span className="aw-badge-ember">Rentrée 2026-2027</span>
             <h1 className="aw-display mt-6">
               Gestion scolaire
               <br />

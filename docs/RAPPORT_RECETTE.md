@@ -1,6 +1,6 @@
-# Rapport de recette — SGEP Fodeba Keita
+# Rapport de recette — GSP Fodeba Keita
 
-**Projet :** Système de Gestion d'École Primaire  
+**Projet :** GSP — Groupe scolaire privé (plateforme de gestion)  
 **Établissement :** Groupe Scolaire Privé Fodeba Keita — Conakry  
 **Version :** MVP (Sprints 0–19)  
 **Date :** _______________

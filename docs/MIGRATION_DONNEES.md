@@ -1,4 +1,4 @@
-# Migration des données — Excel vers SGEP
+# Migration des données — Excel vers GSP
 
 ## 1. Préparation (nettoyage Excel)
 

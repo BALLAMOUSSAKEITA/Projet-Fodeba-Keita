@@ -370,6 +370,102 @@ async def update_calendrier(
     return entry
 
 
+async def _count_where(db: AsyncSession, model, *criteria) -> int:
+    return (await db.execute(select(func.count()).select_from(model).where(*criteria))).scalar_one()
+
+
+async def delete_niveau(db: AsyncSession, niveau_id: UUID) -> None:
+    await _get_niveau(db, niveau_id)
+    classes = await _count_where(db, Classe, Classe.niveau_id == niveau_id)
+    if classes:
+        raise HTTPException(status_code=409, detail=f"Niveau utilisé par {classes} classe(s)")
+    from app.models.eleve import Inscription
+
+    inscriptions = await _count_where(db, Inscription, Inscription.niveau_id == niveau_id)
+    if inscriptions:
+        raise HTTPException(status_code=409, detail=f"Niveau utilisé par {inscriptions} inscription(s)")
+    result = await db.execute(select(Niveau).where(Niveau.id == niveau_id))
+    await db.delete(result.scalar_one())
+    await db.flush()
+
+
+async def delete_classe(db: AsyncSession, classe_id: UUID) -> None:
+    await get_classe(db, classe_id)
+    from app.models.eleve import Inscription
+    from app.models.emploi_du_temps import SeanceCours
+    from app.models.personnel import AffectationPedagogique
+    from app.models.presences import AppelPresence
+
+    for label, model, col in [
+        ("inscription(s)", Inscription, Inscription.classe_id),
+        ("appel(s) de présence", AppelPresence, AppelPresence.classe_id),
+        ("affectation(s) enseignant", AffectationPedagogique, AffectationPedagogique.classe_id),
+        ("séance(s) d'emploi du temps", SeanceCours, SeanceCours.classe_id),
+    ]:
+        n = await _count_where(db, model, col == classe_id)
+        if n:
+            raise HTTPException(status_code=409, detail=f"Classe utilisée par {n} {label}")
+    result = await db.execute(select(Classe).where(Classe.id == classe_id))
+    await db.delete(result.scalar_one())
+    await db.flush()
+
+
+async def delete_matiere(db: AsyncSession, matiere_id: UUID) -> None:
+    await get_matiere(db, matiere_id)
+    from app.models.emploi_du_temps import SeanceCours
+    from app.models.notes import Evaluation
+
+    for label, model in [("évaluation(s)", Evaluation), ("séance(s)", SeanceCours)]:
+        n = await _count_where(db, model, model.matiere_id == matiere_id)
+        if n:
+            raise HTTPException(status_code=409, detail=f"Matière utilisée par {n} {label}")
+    result = await db.execute(select(Matiere).where(Matiere.id == matiere_id))
+    await db.delete(result.scalar_one())
+    await db.flush()
+
+
+async def delete_periode(db: AsyncSession, periode_id: UUID) -> None:
+    result = await db.execute(select(Periode).where(Periode.id == periode_id))
+    periode = result.scalar_one_or_none()
+    if periode is None:
+        raise HTTPException(status_code=404, detail="Période introuvable")
+    from app.models.notes import Evaluation
+
+    n = await _count_where(db, Evaluation, Evaluation.periode_id == periode_id)
+    if n:
+        raise HTTPException(status_code=409, detail=f"Période utilisée par {n} évaluation(s)")
+    await db.delete(periode)
+    await db.flush()
+
+
+async def delete_type_frais(db: AsyncSession, type_id: UUID) -> None:
+    result = await db.execute(select(TypeFrais).where(TypeFrais.id == type_id))
+    type_frais = result.scalar_one_or_none()
+    if type_frais is None:
+        raise HTTPException(status_code=404, detail="Type de frais introuvable")
+    from app.models.paiements import Paiement, TarifNiveau, TrancheFrais
+
+    for label, model, col in [
+        ("paiement(s)", Paiement, Paiement.type_frais_id),
+        ("tarif(s)", TarifNiveau, TarifNiveau.type_frais_id),
+        ("tranche(s)", TrancheFrais, TrancheFrais.type_frais_id),
+    ]:
+        n = await _count_where(db, model, col == type_id)
+        if n:
+            raise HTTPException(status_code=409, detail=f"Type de frais utilisé par {n} {label}")
+    await db.delete(type_frais)
+    await db.flush()
+
+
+async def delete_calendrier(db: AsyncSession, entry_id: UUID) -> None:
+    result = await db.execute(select(CalendrierScolaire).where(CalendrierScolaire.id == entry_id))
+    entry = result.scalar_one_or_none()
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Entrée calendrier introuvable")
+    await db.delete(entry)
+    await db.flush()
+
+
 async def list_referentiels(db: AsyncSession, ref_type: str) -> list[Referentiel]:
     result = await db.execute(
         select(Referentiel).where(Referentiel.type == ref_type).order_by(Referentiel.libelle)

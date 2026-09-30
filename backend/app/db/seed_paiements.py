@@ -86,7 +86,7 @@ async def seed_paiements(db: AsyncSession) -> None:
     if "SCOLARITE" in types_frais:
         scol_id = types_frais["SCOLARITE"].id
         tranches = [
-            ("1ère tranche — Inscription", "2025-10-15", 1, Decimal("40")),
+            ("1ère tranche — Inscription", "2026-10-15", 1, Decimal("40")),
             ("2ème tranche — Trimestre 2", "2026-01-15", 2, Decimal("30")),
             ("3ème tranche — Trimestre 3", "2026-04-15", 3, Decimal("30")),
         ]

@@ -18,7 +18,7 @@ export function Sidebar() {
     <aside className="flex w-[260px] shrink-0 flex-col border-r border-cloud bg-snow">
       <div className="px-5 py-5">
         <Logo />
-        <span className="aw-badge-ember mt-4">2025-2026</span>
+        <span className="aw-badge-ember mt-4">2026-2027</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">

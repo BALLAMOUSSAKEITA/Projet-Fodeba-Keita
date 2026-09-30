@@ -13,7 +13,7 @@ async function apiAvailable(): Promise<boolean> {
   }
 }
 
-test.describe("Parcours E2E SGEP", () => {
+test.describe("Parcours E2E GSP", () => {
   test.beforeEach(async () => {
     test.skip(!(await apiAvailable()), "API non disponible — lancer docker-compose ou uvicorn");
   });

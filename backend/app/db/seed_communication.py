@@ -17,7 +17,7 @@ MODELES = [
 ]
 
 ANNONCES = [
-    ("Rentrée scolaire 2025-2026", "La rentrée des classes est fixée au lundi 6 octobre. Accueil à 7h30.", AudienceAnnonce.TOUS.value),
+    ("Rentrée scolaire 2026-2027", "La rentrée des classes est fixée au lundi 5 octobre 2026. Accueil à 7h30.", AudienceAnnonce.TOUS.value),
     ("Réunion parents — CP", "Réunion d'information pour les parents de CP le vendredi 15 novembre à 16h.", AudienceAnnonce.PARENTS.value),
 ]
 
@@ -66,7 +66,7 @@ async def seed_communication(db: AsyncSession) -> None:
         niveau = niveau_result.scalar_one_or_none()
         if niveau:
             eleve = Eleve(
-                matricule="2025-P3-0001",
+                matricule="2026-P3-0001",
                 nom="Camara",
                 prenoms="Fatoumata",
                 sexe="F",

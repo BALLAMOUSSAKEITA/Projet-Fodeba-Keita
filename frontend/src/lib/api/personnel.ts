@@ -28,6 +28,17 @@ export async function createPersonnel(token: string, data: CreatePersonnelReques
   }, token);
 }
 
+export async function updatePersonnel(
+  token: string,
+  id: string,
+  data: Partial<CreatePersonnelRequest & { statut?: string }>,
+) {
+  return apiFetch<Personnel>(`/api/v1/personnel/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
 export async function addDiplome(
   token: string,
   id: string,

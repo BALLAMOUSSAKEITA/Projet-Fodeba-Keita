@@ -10,12 +10,12 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "SGEP · Groupe Scolaire Privé Fodeba Keita",
+  title: "GSP · Groupe scolaire privé Fodeba Keita",
   description: "Plateforme de gestion scolaire maternelle et primaire à Conakry, Guinée",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "SGEP",
+    title: "GSP",
   },
 };
 

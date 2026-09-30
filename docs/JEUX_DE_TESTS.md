@@ -1,4 +1,4 @@
-# Jeux de tests — SGEP Fodeba Keita
+# Jeux de tests — GSP Fodeba Keita
 
 Document de référence pour la recette et la maintenance (Sprint 19).
 

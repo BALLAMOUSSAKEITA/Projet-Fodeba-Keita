@@ -6,7 +6,7 @@ const mockUser: UserInfo = {
   id: "u1",
   email: "admin@fodebakeita.gn",
   nom: "Admin",
-  prenom: "SGEP",
+  prenom: "Admin",
   role: "super_admin",
   permissions: ["users.manage", "students.view"],
 };

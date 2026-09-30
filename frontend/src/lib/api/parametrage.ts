@@ -77,3 +77,73 @@ export async function listCalendrier(token: string, anneeId: string) {
 export async function listReferentiels(token: string, type: string) {
   return apiFetch<Referentiel[]>(`${base}/referentiels/${type}`, {}, token);
 }
+
+export async function updateClasse(token: string, id: string, data: Partial<Classe>) {
+  return apiFetch<Classe>(`${base}/classes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteClasse(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/classes/${id}`, { method: "DELETE" }, token);
+}
+
+export async function updateMatiere(
+  token: string,
+  id: string,
+  data: Partial<{ libelle: string; coefficient_defaut: number }>,
+) {
+  return apiFetch<Matiere>(`${base}/matieres/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteMatiere(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/matieres/${id}`, { method: "DELETE" }, token);
+}
+
+export async function updateNiveau(token: string, id: string, data: Partial<Niveau>) {
+  return apiFetch<Niveau>(`${base}/niveaux/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteNiveau(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/niveaux/${id}`, { method: "DELETE" }, token);
+}
+
+export async function updatePeriode(token: string, id: string, data: Partial<Periode>) {
+  return apiFetch<Periode>(`${base}/periodes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deletePeriode(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/periodes/${id}`, { method: "DELETE" }, token);
+}
+
+export async function updateTypeFrais(token: string, id: string, data: Partial<TypeFrais>) {
+  return apiFetch<TypeFrais>(`${base}/types-frais/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteTypeFrais(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/types-frais/${id}`, { method: "DELETE" }, token);
+}
+
+export async function updateCalendrierEntry(token: string, id: string, data: Partial<CalendrierEntry>) {
+  return apiFetch<CalendrierEntry>(`${base}/calendrier/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteCalendrierEntry(token: string, id: string) {
+  return apiFetch<{ message: string }>(`${base}/calendrier/${id}`, { method: "DELETE" }, token);
+}

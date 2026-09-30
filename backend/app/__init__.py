@@ -1,1 +1,1 @@
-"""SGEP — Backend FastAPI — Groupe Scolaire Privé Fodeba Keita."""
+"""GSP — Backend FastAPI — Groupe scolaire privé Fodeba Keita."""

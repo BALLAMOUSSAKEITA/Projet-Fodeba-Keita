@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.communication import (
     AnnonceCreate,
     AnnonceResponse,
+    AnnonceUpdate,
     EnvoiMessageCreate,
     HistoriqueResponse,
     ModeleMessageCreate,
@@ -40,6 +41,25 @@ async def create_annonce(
     user: User = Depends(require_permission(MANAGE_PERMISSION)),
 ):
     return await communication_service.create_annonce(db, data, user.id, publier)
+
+
+@router.patch("/annonces/{annonce_id}", response_model=AnnonceResponse)
+async def update_annonce(
+    annonce_id: UUID,
+    data: AnnonceUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission(MANAGE_PERMISSION)),
+):
+    return await communication_service.update_annonce(db, annonce_id, data)
+
+
+@router.delete("/annonces/{annonce_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_annonce(
+    annonce_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission(MANAGE_PERMISSION)),
+):
+    await communication_service.delete_annonce(db, annonce_id)
 
 
 @router.post("/annonces/{annonce_id}/publier", response_model=AnnonceResponse)

@@ -151,9 +151,11 @@ export default function ElevesPage() {
                   <td className="px-4 py-3">{e.classe_nom ?? "—"}</td>
                   <td className="px-4 py-3">{e.date_naissance}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/dashboard/eleves/${e.id}`} className="text-emerald-700 hover:underline">
-                      Voir
-                    </Link>
+                    <div className="flex gap-3">
+                      <Link href={`/dashboard/eleves/${e.id}`} className="text-emerald-700 hover:underline">
+                        {canEnroll ? "Modifier" : "Voir"}
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))

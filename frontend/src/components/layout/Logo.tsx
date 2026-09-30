@@ -18,8 +18,8 @@ export function Logo({ className = "" }: LogoProps) {
         </svg>
       </div>
       <div>
-        <p className="text-[13px] font-semibold leading-none text-obsidian">SGEP</p>
-        <p className="mt-1 text-[12px] text-steel">Fodeba Keita</p>
+        <p className="text-[13px] font-semibold leading-none text-obsidian">GSP</p>
+        <p className="mt-1 text-[12px] text-steel">Groupe scolaire privé · Fodeba Keita</p>
       </div>
     </div>
   );

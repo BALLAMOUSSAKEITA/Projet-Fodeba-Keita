@@ -1,4 +1,4 @@
-# Sauvegarde PostgreSQL SGEP — Sprint 17
+# Sauvegarde PostgreSQL GSP — Sprint 17
 # Usage: .\scripts\backup-db.ps1
 
 param(

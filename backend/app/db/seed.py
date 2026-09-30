@@ -134,7 +134,7 @@ DEFAULT_USERS = [
         "email": "admin@fodebakeita.gn",
         "password": "admin123",
         "nom": "Administrateur",
-        "prenom": "SGEP",
+        "prenom": "Admin",
         "telephone": "+224620000001",
         "role_code": "super_admin",
     },

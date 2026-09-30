@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sauvegarde PostgreSQL SGEP — Sprint 17
+# Sauvegarde PostgreSQL GSP — Sprint 17
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

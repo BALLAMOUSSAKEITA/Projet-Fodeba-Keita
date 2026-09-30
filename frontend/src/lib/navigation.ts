@@ -1,7 +1,6 @@
 export type NavIconName =
   | "dashboard"
   | "users"
-  | "roles"
   | "students"
   | "classes"
   | "staff"
@@ -60,7 +59,6 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "Administration",
     items: [
       { href: "/dashboard/utilisateurs", label: "Utilisateurs", icon: "users", permission: "users.manage" },
-      { href: "/dashboard/roles", label: "Rôles", icon: "roles", permission: "users.manage" },
       { href: "/dashboard/personnel", label: "Personnel", icon: "staff", permission: "personnel.view" },
       { href: "/dashboard/parametres", label: "Paramètres", icon: "settings", permission: "settings.view" },
     ],
@@ -87,7 +85,6 @@ export const NAV_SECTIONS: NavSection[] = [
 const ROUTE_TITLES: Record<string, string> = {
   "/dashboard": "Tableau de bord",
   "/dashboard/utilisateurs": "Utilisateurs",
-  "/dashboard/roles": "Rôles",
   "/dashboard/eleves": "Élèves",
   "/dashboard/classes": "Classes",
   "/dashboard/personnel": "Personnel",

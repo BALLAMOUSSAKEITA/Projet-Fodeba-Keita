@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_permission
 from app.models.user import User
+from app.schemas.common import MessageResponse
 from app.schemas.parametrage import (
     AnneeScolaireCreate,
     AnneeScolaireResponse,
@@ -146,6 +147,16 @@ async def update_niveau(
     return await svc.update_niveau(db, niveau_id, data)
 
 
+@router.delete("/niveaux/{niveau_id}", response_model=MessageResponse)
+async def delete_niveau(
+    niveau_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_niveau(db, niveau_id)
+    return MessageResponse(message="Niveau supprimé")
+
+
 @router.get("/classes", response_model=list[ClasseResponse])
 async def list_classes(
     annee_scolaire_id: UUID | None = Query(None),
@@ -172,6 +183,16 @@ async def update_classe(
     _: User = Depends(require_permission("settings.manage")),
 ):
     return await svc.update_classe(db, classe_id, data)
+
+
+@router.delete("/classes/{classe_id}", response_model=MessageResponse)
+async def delete_classe(
+    classe_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_classe(db, classe_id)
+    return MessageResponse(message="Classe supprimée")
 
 
 @router.get("/matieres", response_model=list[MatiereResponse])
@@ -201,6 +222,16 @@ async def update_matiere(
     return await svc.update_matiere(db, matiere_id, data)
 
 
+@router.delete("/matieres/{matiere_id}", response_model=MessageResponse)
+async def delete_matiere(
+    matiere_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_matiere(db, matiere_id)
+    return MessageResponse(message="Matière supprimée")
+
+
 @router.get("/periodes", response_model=list[PeriodeResponse])
 async def list_periodes(
     annee_scolaire_id: UUID,
@@ -227,6 +258,16 @@ async def update_periode(
     _: User = Depends(require_permission("settings.manage")),
 ):
     return await svc.update_periode(db, periode_id, data)
+
+
+@router.delete("/periodes/{periode_id}", response_model=MessageResponse)
+async def delete_periode(
+    periode_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_periode(db, periode_id)
+    return MessageResponse(message="Période supprimée")
 
 
 @router.get("/bareme/{annee_id}", response_model=BaremeResponse)
@@ -275,6 +316,16 @@ async def update_type_frais(
     return await svc.update_type_frais(db, type_id, data)
 
 
+@router.delete("/types-frais/{type_id}", response_model=MessageResponse)
+async def delete_type_frais(
+    type_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_type_frais(db, type_id)
+    return MessageResponse(message="Type de frais supprimé")
+
+
 @router.get("/calendrier", response_model=list[CalendrierResponse])
 async def list_calendrier(
     annee_scolaire_id: UUID,
@@ -301,6 +352,16 @@ async def update_calendrier(
     _: User = Depends(require_permission("settings.manage")),
 ):
     return await svc.update_calendrier(db, entry_id, data)
+
+
+@router.delete("/calendrier/{entry_id}", response_model=MessageResponse)
+async def delete_calendrier(
+    entry_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("settings.manage")),
+):
+    await svc.delete_calendrier(db, entry_id)
+    return MessageResponse(message="Entrée calendrier supprimée")
 
 
 @router.get("/referentiels/{ref_type}", response_model=list[ReferentielResponse])

@@ -12,6 +12,13 @@ class AnnonceCreate(BaseModel):
     annee_scolaire_id: UUID | None = None
 
 
+class AnnonceUpdate(BaseModel):
+    titre: str | None = Field(default=None, min_length=3, max_length=200)
+    contenu: str | None = Field(default=None, min_length=10)
+    audience: str | None = Field(default=None, pattern=r"^(tous|parents|personnel)$")
+    date_expiration: date | None = None
+
+
 class AnnonceResponse(BaseModel):
     id: UUID
     titre: str

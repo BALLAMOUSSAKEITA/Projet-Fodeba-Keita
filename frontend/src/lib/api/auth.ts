@@ -54,6 +54,21 @@ export async function createUser(token: string, data: CreateUserRequest) {
   }, token);
 }
 
+export async function updateUser(
+  token: string,
+  userId: string,
+  data: Partial<CreateUserRequest & { password?: string }>,
+) {
+  return apiFetch<UserInfo>(`/api/v1/users/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deactivateUser(token: string, userId: string) {
+  return apiFetch<{ message: string }>(`/api/v1/users/${userId}`, { method: "DELETE" }, token);
+}
+
 export async function listRoles(token: string): Promise<Role[]> {
   return apiFetch<Role[]>("/api/v1/roles", {}, token);
 }

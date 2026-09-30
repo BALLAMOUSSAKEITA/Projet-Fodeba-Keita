@@ -1,6 +1,6 @@
 {
-  "name": "SGEP · Groupe Scolaire Privé Fodeba Keita",
-  "short_name": "SGEP",
+  "name": "GSP · Groupe scolaire privé Fodeba Keita",
+  "short_name": "GSP",
   "description": "Gestion scolaire maternelle et primaire à Conakry",
   "start_url": "/dashboard",
   "display": "standalone",

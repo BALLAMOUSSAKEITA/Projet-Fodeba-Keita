@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  annulerPaiement,
   createPaiement,
   downloadRecuPdf,
   getCaisseJournaliere,
@@ -59,6 +60,7 @@ export default function FinancePage() {
 
   const canCollect = hasPermission("payments.collect");
   const canView = canCollect || hasPermission("payments.view");
+  const canCancel = canCollect;
 
   useEffect(() => {
     const token = getToken();
@@ -303,16 +305,36 @@ export default function FinancePage() {
             )}
 
             {lastPaiement && (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
-                <p className="font-semibold text-emerald-900">Paiement enregistré</p>
-                <p className="mt-1 text-sm text-emerald-800">Reçu {lastPaiement.numero_recu} — {fmt(Number(lastPaiement.montant))}</p>
-                <button
-                  type="button"
-                  onClick={handleDownloadRecu}
-                  className="mt-3 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
-                >
-                  Imprimer le reçu PDF
-                </button>
+              <div className="aw-card overflow-hidden p-0">
+                <div className="border-b border-[var(--color-cloud)] bg-[var(--color-obsidian)] px-5 py-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Paiement enregistré</p>
+                  <p className="mt-1 font-mono text-sm text-white">{lastPaiement.numero_recu}</p>
+                </div>
+                <div className="space-y-4 px-5 py-5">
+                  <div>
+                    <p className="text-xs text-zinc-500">Montant encaissé</p>
+                    <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+                      {fmt(Number(lastPaiement.montant))}
+                    </p>
+                  </div>
+                  <dl className="grid gap-2 text-sm">
+                    <div className="flex justify-between gap-4 border-b border-zinc-100 py-2">
+                      <dt className="text-zinc-500">Élève</dt>
+                      <dd className="text-right font-medium text-zinc-900">
+                        {lastPaiement.eleve_prenoms} {lastPaiement.eleve_nom}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-4 py-1">
+                      <dt className="text-zinc-500">Mode</dt>
+                      <dd className="text-zinc-800">
+                        {MODES.find((m) => m.value === lastPaiement.mode_paiement)?.label ?? lastPaiement.mode_paiement}
+                      </dd>
+                    </div>
+                  </dl>
+                  <button type="button" onClick={handleDownloadRecu} className="aw-btn-primary w-full">
+                    Télécharger le reçu PDF
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -406,6 +428,7 @@ export default function FinancePage() {
                       <th className="px-4 py-3 text-left">Objet</th>
                       <th className="px-4 py-3 text-left">Montant</th>
                       <th className="px-4 py-3 text-left">Mode</th>
+                      {canCancel && <th className="px-4 py-3 text-left"></th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -416,6 +439,31 @@ export default function FinancePage() {
                         <td className="px-4 py-2">{p.type_frais_libelle}</td>
                         <td className="px-4 py-2">{fmt(Number(p.montant))}</td>
                         <td className="px-4 py-2">{MODES.find((m) => m.value === p.mode_paiement)?.label ?? p.mode_paiement}</td>
+                        {canCancel && (
+                          <td className="px-4 py-2">
+                            {p.statut === "valide" && (
+                              <button
+                                type="button"
+                                className="text-sm text-red-600 hover:underline"
+                                onClick={async () => {
+                                  const token = getToken();
+                                  if (!token) return;
+                                  const motif = window.prompt("Motif d'annulation ?");
+                                  if (!motif) return;
+                                  try {
+                                    await annulerPaiement(token, p.id, motif);
+                                    const refreshed = await getCaisseJournaliere(token, caisseDate);
+                                    setCaisse(refreshed);
+                                  } catch (err) {
+                                    setError(err instanceof ApiError ? err.message : "Erreur annulation");
+                                  }
+                                }}
+                              >
+                                Annuler
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

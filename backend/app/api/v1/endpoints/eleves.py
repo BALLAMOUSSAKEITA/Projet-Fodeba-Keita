@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_any_permission, require_permission
 from app.models.user import User
+from app.schemas.common import MessageResponse
 from app.schemas.eleve import (
     AffecterClasseRequest,
     DesactiverEleveRequest,
@@ -142,6 +143,16 @@ async def update_eleve(
     _: User = Depends(require_permission("students.enroll")),
 ):
     return await eleve_service.update_eleve(db, eleve_id, data)
+
+
+@router.delete("/{eleve_id}", response_model=MessageResponse)
+async def delete_eleve(
+    eleve_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("students.enroll")),
+):
+    await eleve_service.delete_eleve(db, eleve_id)
+    return MessageResponse(message="Élève supprimé")
 
 
 @router.post("/{eleve_id}/affecter-classe", response_model=EleveResponse)

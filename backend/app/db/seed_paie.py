@@ -13,7 +13,7 @@ async def seed_paie(db: AsyncSession) -> None:
     if existing.scalar_one_or_none() is not None:
         return
 
-    db.add(PeriodePaie(annee=2025, mois=9, libelle="Septembre 2025"))
+    db.add(PeriodePaie(annee=2026, mois=9, libelle="Septembre 2026"))
 
     for matricule, salaire in [("PER-0001", Decimal("2800000")), ("PER-0002", Decimal("1800000"))]:
         result = await db.execute(select(Personnel).where(Personnel.matricule == matricule))

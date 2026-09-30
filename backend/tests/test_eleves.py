@@ -37,7 +37,7 @@ async def test_create_eleve_with_matricule(client, admin_token):
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["matricule"].startswith("2025-P3-")
+    assert data["matricule"].startswith("2026-P3-")
     assert data["nom"] == "Diallo"
     assert len(data["tuteurs"]) == 1
     assert len(data["inscriptions"]) == 1

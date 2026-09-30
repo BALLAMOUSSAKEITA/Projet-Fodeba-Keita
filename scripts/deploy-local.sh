@@ -9,7 +9,7 @@ if [[ ! -f .env.production ]]; then
   echo "Fichier .env.production créé — MODIFIEZ les mots de passe avant la mise en production."
 fi
 
-echo "=== Déploiement SGEP (production) ==="
+echo "=== Déploiement GSP (production) ==="
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 
 PUBLIC_URL=$(grep -E '^PUBLIC_URL=' .env.production | cut -d= -f2- || echo "http://localhost")

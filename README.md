@@ -1,4 +1,4 @@
-# SGEP — Groupe Scolaire Privé Fodeba Keita
+# GSP — Groupe scolaire privé Fodeba Keita
 
 Plateforme de gestion scolaire (maternelle & primaire) — Conakry, Guinée.
 
@@ -117,7 +117,7 @@ Guide complet : [`docs/DEPLOIEMENT_RAILWAY.md`](docs/DEPLOIEMENT_RAILWAY.md)
 | `docs/MANUEL_INSTALLATION.md` | L6 — Installation & déploiement |
 | `docs/MANUEL_UTILISATEUR.md` | L7 — Guide par profil |
 | `docs/API_SWAGGER.md` | L10 — Documentation API |
-| `docs/MIGRATION_DONNEES.md` | Import CSV Excel → SGEP |
+| `docs/MIGRATION_DONNEES.md` | Import CSV Excel → GSP |
 | `docs/FORMATION.md` | Plans de formation |
 | `docs/GOLIVE_CHECKLIST.md` | Checklist mise en production |
 | `docs/JEUX_DE_TESTS.md` | Catalogue des tests |

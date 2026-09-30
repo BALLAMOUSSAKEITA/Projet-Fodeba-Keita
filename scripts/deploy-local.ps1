@@ -10,7 +10,7 @@ if (-not (Test-Path ".env.production")) {
     Write-Host "Fichier .env.production créé — MODIFIEZ les mots de passe avant la mise en production."
 }
 
-Write-Host "=== Déploiement SGEP (production) ==="
+Write-Host "=== Déploiement GSP (production) ==="
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 
 Write-Host ""

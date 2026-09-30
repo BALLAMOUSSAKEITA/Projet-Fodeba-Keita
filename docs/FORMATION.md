@@ -1,4 +1,4 @@
-# Plans de formation — SGEP Fodeba Keita
+# Plans de formation — GSP Fodeba Keita
 
 Durée indicative par session : **2 à 3 heures** + exercices pratiques.
 

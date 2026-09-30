@@ -16,12 +16,6 @@ const paths: Record<NavIconName, ReactNode> = {
       <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
     </>
   ),
-  roles: (
-    <>
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M12 11V7a3 3 0 0 1 6 0v1" />
-    </>
-  ),
   students: (
     <>
       <path d="M12 3 4 7v6c0 4.4 3.6 8 8 8s8-3.6 8-8V7l-8-4Z" />

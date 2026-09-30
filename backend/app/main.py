@@ -48,7 +48,7 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 @app.get("/", tags=["racine"])
 async def root():
     return {
-        "message": "SGEP API — Groupe Scolaire Privé Fodeba Keita",
+        "message": "GSP API — Groupe scolaire privé Fodeba Keita",
         "docs": "/docs",
         "version": "0.1.0",
     }
@@ -66,7 +66,7 @@ async def prometheus_metrics(db: AsyncSession = Depends(get_db)) -> PlainTextRes
     users = (await db.execute(select(func.count()).select_from(User))).scalar_one()
 
     lines = [
-        "# HELP sgep_up Disponibilité API SGEP (1=ok)",
+        "# HELP sgep_up Disponibilité API GSP (1=ok)",
         "# TYPE sgep_up gauge",
         f"sgep_up {db_up}",
         "# HELP sgep_database_up Connexion PostgreSQL",

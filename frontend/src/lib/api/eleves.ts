@@ -52,6 +52,37 @@ export async function updateEleve(token: string, id: string, data: Partial<Creat
   }, token);
 }
 
+export async function deleteEleve(token: string, id: string) {
+  return apiFetch<{ message: string }>(`/api/v1/eleves/${id}`, { method: "DELETE" }, token);
+}
+
+export async function addTuteur(
+  token: string,
+  eleveId: string,
+  data: { type: string; nom: string; prenoms: string; telephone: string; profession?: string; adresse?: string; email?: string },
+) {
+  return apiFetch<Eleve>(`/api/v1/eleves/${eleveId}/tuteurs`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function updateTuteur(
+  token: string,
+  eleveId: string,
+  tuteurId: string,
+  data: Partial<{ type: string; nom: string; prenoms: string; telephone: string; profession?: string; adresse?: string; email?: string }>,
+) {
+  return apiFetch<Eleve>(`/api/v1/eleves/${eleveId}/tuteurs/${tuteurId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
+export async function deleteTuteur(token: string, eleveId: string, tuteurId: string) {
+  return apiFetch<Eleve>(`/api/v1/eleves/${eleveId}/tuteurs/${tuteurId}`, { method: "DELETE" }, token);
+}
+
 export async function reinscrireEleve(token: string, id: string, niveauId: string) {
   return apiFetch<Eleve>(`/api/v1/eleves/${id}/reinscrire`, {
     method: "POST",

@@ -1,6 +1,7 @@
 from datetime import date
 from io import BytesIO
 
+from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
@@ -286,13 +287,42 @@ def generate_bulletin_maternelle(eleve, grille, row, etab: Etablissement | None)
     return buffer.read()
 
 
+def _format_gnf(amount) -> str:
+    return f"{float(amount):,.0f} GNF".replace(",", " ")
+
+
+def _paiement_date_str(paiement) -> str:
+    d = paiement.date_paiement
+    if hasattr(d, "strftime"):
+        return d.strftime("%d/%m/%Y")
+    return str(d)
+
+
+def _draw_recu_detail_row(
+    c: canvas.Canvas,
+    x: float,
+    y: float,
+    width: float,
+    label: str,
+    value: str,
+    *,
+    alt: bool = False,
+    value_bold: bool = False,
+) -> float:
+    row_h = 0.72 * cm
+    if alt:
+        c.setFillColor(HexColor("#fafafa"))
+        c.rect(x, y - row_h + 0.12 * cm, width, row_h, fill=1, stroke=0)
+    c.setFillColor(HexColor("#71717a"))
+    c.setFont("Helvetica", 9)
+    c.drawString(x + 0.35 * cm, y - 0.48 * cm, label)
+    c.setFillColor(HexColor("#18181b"))
+    c.setFont("Helvetica-Bold" if value_bold else "Helvetica", 9)
+    c.drawRightString(x + width - 0.35 * cm, y - 0.48 * cm, value)
+    return y - row_h
+
+
 def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
-    from io import BytesIO
-
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    _draw_header(c, etab, "REÇU DE PAIEMENT")
-
     mode_labels = {
         "especes": "Espèces",
         "orange_money": "Orange Money",
@@ -301,55 +331,160 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
         "cheque": "Chèque",
     }
 
-    y = A4[1] - 5 * cm
+    obsidian = HexColor("#18181b")
+    ember = HexColor("#ff5a00")
+    border = HexColor("#e4e4e7")
+    muted = HexColor("#71717a")
+
+    card_w = 16 * cm
+    card_h = 20.5 * cm
+    card_x = (A4[0] - card_w) / 2
+    card_y = A4[1] - 2.8 * cm - card_h
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    c.setFillColor(HexColor("#d4d4d8"))
+    c.roundRect(card_x + 0.12 * cm, card_y - 0.12 * cm, card_w, card_h, 10, fill=1, stroke=0)
+
+    c.setFillColor(HexColor("#ffffff"))
+    c.setStrokeColor(border)
+    c.setLineWidth(0.5)
+    c.roundRect(card_x, card_y, card_w, card_h, 10, fill=1, stroke=1)
+
+    header_h = 3.4 * cm
+    header_y = card_y + card_h - header_h
+    c.setFillColor(obsidian)
+    c.rect(card_x, header_y, card_w, header_h, fill=1, stroke=0)
+    c.setFillColor(ember)
+    c.rect(card_x, header_y, card_w, 0.14 * cm, fill=1, stroke=0)
+
+    nom = etab.nom if etab else "Groupe Scolaire Privé Fodeba Keita"
+    c.setFillColor(HexColor("#ffffff"))
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.35 * cm, nom)
+    c.setFont("Helvetica", 9)
+    c.setFillColor(HexColor("#a1a1aa"))
+    c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.95 * cm, "REÇU DE PAIEMENT OFFICIEL")
+
+    contact_parts: list[str] = []
+    if etab:
+        if etab.adresse:
+            contact_parts.append(etab.adresse)
+        if etab.telephone:
+            contact_parts.append(f"Tél. {etab.telephone}")
+        if etab.email:
+            contact_parts.append(str(etab.email))
+    if contact_parts:
+        c.setFont("Helvetica", 7)
+        c.setFillColor(HexColor("#71717a"))
+        c.drawCentredString(
+            card_x + card_w / 2,
+            header_y + 0.55 * cm,
+            " · ".join(contact_parts)[:95],
+        )
+
+    meta_y = header_y - 0.85 * cm
+    c.setFillColor(muted)
+    c.setFont("Helvetica", 8)
+    c.drawString(card_x + 0.6 * cm, meta_y, f"Date d'émission · {_paiement_date_str(paiement)}")
+    c.setFillColor(obsidian)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawRightString(card_x + card_w - 0.6 * cm, meta_y, paiement.numero_recu)
+
+    eleve_nom = f"{paiement.eleve_prenoms} {paiement.eleve_nom}".strip()
+    block_y = meta_y - 1.1 * cm
+    c.setFillColor(HexColor("#fafafa"))
+    c.setStrokeColor(border)
+    c.roundRect(card_x + 0.6 * cm, block_y - 1.35 * cm, card_w - 1.2 * cm, 1.35 * cm, 6, fill=1, stroke=1)
+    c.setFillColor(ember)
+    c.rect(card_x + 0.6 * cm, block_y - 1.35 * cm, 0.12 * cm, 1.35 * cm, fill=1, stroke=0)
+    c.setFillColor(muted)
+    c.setFont("Helvetica", 8)
+    c.drawString(card_x + 1 * cm, block_y - 0.45 * cm, "ÉLÈVE")
+    c.setFillColor(obsidian)
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(2.5 * cm, y, f"N° {paiement.numero_recu}")
-    y -= 0.8 * cm
-    c.setFont("Helvetica", 10)
-    lines = [
-        f"Date : {paiement.date_paiement.strftime('%d/%m/%Y') if hasattr(paiement.date_paiement, 'strftime') else paiement.date_paiement}",
-        f"Élève : {paiement.eleve_prenoms} {paiement.eleve_nom}",
-        f"Matricule : {paiement.eleve_matricule}",
-        f"Objet : {paiement.type_frais_libelle}",
+    c.drawString(card_x + 1 * cm, block_y - 0.95 * cm, eleve_nom[:42])
+    c.setFont("Helvetica", 9)
+    c.setFillColor(muted)
+    c.drawRightString(card_x + card_w - 0.85 * cm, block_y - 0.95 * cm, f"Matricule {paiement.eleve_matricule}")
+
+    table_x = card_x + 0.6 * cm
+    table_w = card_w - 1.2 * cm
+    y = block_y - 1.75 * cm
+
+    rows: list[tuple[str, str]] = [
+        ("Nature des frais", paiement.type_frais_libelle),
     ]
     if paiement.tranche_libelle:
-        lines.append(f"Tranche : {paiement.tranche_libelle}")
-    lines.extend([
-        f"Montant : {paiement.montant:,.0f} GNF".replace(",", " "),
-        f"Mode : {mode_labels.get(paiement.mode_paiement, paiement.mode_paiement)}",
-    ])
+        rows.append(("Tranche", paiement.tranche_libelle))
+    if paiement.libelle:
+        rows.append(("Libellé", paiement.libelle[:48]))
+    rows.append(("Mode de règlement", mode_labels.get(paiement.mode_paiement, paiement.mode_paiement)))
     if paiement.reference_externe:
-        lines.append(f"Référence : {paiement.reference_externe}")
-    if paiement.remise_montant and paiement.remise_montant > 0:
-        lines.append(f"Remise appliquée : {paiement.remise_montant:,.0f} GNF".replace(",", " "))
+        rows.append(("Référence transaction", paiement.reference_externe))
+    if paiement.remise_montant and float(paiement.remise_montant) > 0:
+        rows.append(("Remise accordée", _format_gnf(paiement.remise_montant)))
 
-    for line in lines:
-        c.drawString(2.5 * cm, y, line)
-        y -= 0.6 * cm
+    for i, (label, value) in enumerate(rows):
+        y = _draw_recu_detail_row(c, table_x, y, table_w, label, value, alt=i % 2 == 0)
 
-    qr_data = f"SGEP|{paiement.numero_recu}|{paiement.eleve_matricule}|{paiement.montant}"
-    y -= 0.5 * cm
+    amount_box_h = 2.1 * cm
+    amount_y = y - 0.35 * cm - amount_box_h
+    c.setFillColor(obsidian)
+    c.roundRect(table_x, amount_y, table_w, amount_box_h, 8, fill=1, stroke=0)
+    c.setFillColor(HexColor("#a1a1aa"))
     c.setFont("Helvetica", 8)
-    c.drawString(2.5 * cm, y, f"Vérification : {qr_data}")
-    y -= 1 * cm
+    c.drawCentredString(table_x + table_w / 2, amount_y + amount_box_h - 0.65 * cm, "MONTANT ENCAISSÉ")
+    c.setFillColor(HexColor("#ffffff"))
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(table_x + table_w / 2, amount_y + 0.55 * cm, _format_gnf(paiement.montant))
+
+    qr_data = f"GSP|{paiement.numero_recu}|{paiement.eleve_matricule}|{paiement.montant}"
+    footer_y = amount_y - 0.5 * cm
+    qr_size = 2.6 * cm
+    qr_x = table_x
+    qr_bottom = footer_y - qr_size - 0.35 * cm
 
     try:
         import qrcode
         from reportlab.lib.utils import ImageReader
 
-        qr = qrcode.make(qr_data, box_size=4, border=2)
+        qr = qrcode.make(qr_data, box_size=4, border=1)
         qr_buffer = BytesIO()
         qr.save(qr_buffer, format="PNG")
         qr_buffer.seek(0)
-        c.drawImage(ImageReader(qr_buffer), A4[0] - 5 * cm, y - 3 * cm, width=3 * cm, height=3 * cm)
+        c.setStrokeColor(border)
+        c.setLineWidth(0.5)
+        c.roundRect(qr_x, qr_bottom, qr_size, qr_size, 4, fill=0, stroke=1)
+        c.drawImage(ImageReader(qr_buffer), qr_x + 0.15 * cm, qr_bottom + 0.15 * cm, width=qr_size - 0.3 * cm, height=qr_size - 0.3 * cm)
     except ImportError:
-        c.setFont("Helvetica-Oblique", 8)
-        c.drawString(2.5 * cm, y, "(QR code — installer qrcode pour l'affichage graphique)")
+        c.setFont("Helvetica-Oblique", 7)
+        c.setFillColor(muted)
+        c.drawString(qr_x, qr_bottom + qr_size / 2, "QR code indisponible")
 
-    y -= 1.5 * cm
-    c.setFont("Helvetica", 9)
-    c.drawString(2.5 * cm, y, "Signature et cachet de l'établissement")
-    c.line(2.5 * cm, y - 0.3 * cm, 8 * cm, y - 0.3 * cm)
+    c.setFillColor(muted)
+    c.setFont("Helvetica", 7)
+    c.drawString(qr_x, qr_bottom - 0.35 * cm, "Scan pour vérifier l'authenticité")
+
+    sig_x = table_x + table_w - 6.2 * cm
+    sig_y = footer_y - 0.2 * cm
+    c.setFillColor(muted)
+    c.setFont("Helvetica", 8)
+    c.drawString(sig_x, sig_y, "Signature et cachet")
+    c.setStrokeColor(border)
+    c.setLineWidth(0.5)
+    c.line(sig_x, sig_y - 1.35 * cm, sig_x + 5.8 * cm, sig_y - 1.35 * cm)
+    c.setFont("Helvetica", 7)
+    c.drawString(sig_x, sig_y - 1.65 * cm, "La caisse / Le responsable financier")
+
+    c.setFillColor(muted)
+    c.setFont("Helvetica-Oblique", 7)
+    c.drawCentredString(
+        card_x + card_w / 2,
+        card_y + 0.45 * cm,
+        "Document généré par GSP — Conservez ce reçu comme preuve de paiement.",
+    )
 
     c.showPage()
     c.save()

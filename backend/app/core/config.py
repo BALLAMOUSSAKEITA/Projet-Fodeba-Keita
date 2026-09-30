@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    PROJECT_NAME: str = "SGEP — Fodeba Keita"
+    PROJECT_NAME: str = "GSP — Groupe scolaire privé Fodeba Keita"
     API_V1_PREFIX: str = "/api/v1"
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "dev-secret-key-change-in-production"

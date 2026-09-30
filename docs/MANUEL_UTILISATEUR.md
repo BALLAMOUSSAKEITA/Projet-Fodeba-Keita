@@ -1,6 +1,6 @@
 # L7 — Manuel utilisateur par profil
 
-**SGEP — Groupe Scolaire Privé Fodeba Keita**
+**GSP — Groupe scolaire privé Fodeba Keita**
 
 ---
 

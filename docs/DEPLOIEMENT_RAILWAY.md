@@ -1,4 +1,4 @@
-# Déploiement SGEP sur Railway
+# Déploiement GSP sur Railway
 
 Guide pas à pas pour héberger **backend**, **frontend** et **PostgreSQL** sur [Railway](https://railway.app).
 
