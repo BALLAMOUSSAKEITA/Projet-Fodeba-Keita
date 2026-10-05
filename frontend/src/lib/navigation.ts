@@ -96,9 +96,27 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "Suivi",
     items: [
       { href: "/dashboard/rapports", label: "Rapports", icon: "analytics", permission: "reports.view" },
-      { href: "/dashboard/annonces", label: "Annonces", icon: "announcements", permission: "communication.view" },
-      { href: "/dashboard/portail", label: "Portail parent", icon: "portal", permission: "parent.portal" },
-      { href: "/dashboard/securite", label: "Sécurité", icon: "security", permission: "security.audit" },
+      {
+        href: "/dashboard/annonces",
+        label: "Annonces",
+        icon: "announcements",
+        permission: "communication.view",
+        menuHidden: true,
+      },
+      {
+        href: "/dashboard/portail",
+        label: "Portail parent",
+        icon: "portal",
+        permission: "parent.portal",
+        menuHidden: true,
+      },
+      {
+        href: "/dashboard/securite",
+        label: "Sécurité",
+        icon: "security",
+        permission: "security.audit",
+        menuHidden: true,
+      },
     ],
   },
 ];
