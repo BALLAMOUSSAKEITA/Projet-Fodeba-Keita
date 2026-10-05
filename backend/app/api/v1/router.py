@@ -2,23 +2,17 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth,
-    bulletins,
     classes,
-    communication,
     comptabilite,
     eleves,
     emploi_du_temps,
     health,
-    notes,
     paiements,
     paie,
     parametrage,
     personnel,
-    portail,
-    presences,
     rapports,
     roles,
-    securite,
     sync,
     users,
 )
@@ -37,14 +31,8 @@ api_router.include_router(
     prefix="/emploi-du-temps",
     tags=["emploi du temps"],
 )
-api_router.include_router(notes.router, prefix="/notes", tags=["notes"])
-api_router.include_router(bulletins.router, prefix="/bulletins", tags=["bulletins"])
-api_router.include_router(presences.router, prefix="/presences", tags=["présences"])
 api_router.include_router(paiements.router, prefix="/paiements", tags=["paiements"])
 api_router.include_router(paie.router, prefix="/paie", tags=["paie"])
 api_router.include_router(comptabilite.router, prefix="/comptabilite", tags=["comptabilité"])
-api_router.include_router(communication.router, prefix="/communication", tags=["communication"])
-api_router.include_router(portail.router, prefix="/portail", tags=["portail parent"])
 api_router.include_router(rapports.router, prefix="/rapports", tags=["rapports"])
-api_router.include_router(securite.router, prefix="/securite", tags=["sécurité"])
 api_router.include_router(sync.router, prefix="/sync", tags=["synchronisation"])

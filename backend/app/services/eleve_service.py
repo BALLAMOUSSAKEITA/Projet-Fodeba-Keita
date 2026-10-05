@@ -6,8 +6,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.audit import HistoriqueNote, HistoriquePaiement
-from app.models.bulletins import DecisionPassage, EvaluationCompetence
+from app.models.audit import HistoriquePaiement
 from app.models.eleve import (
     Eleve,
     Inscription,
@@ -17,7 +16,6 @@ from app.models.eleve import (
     TypeInscription,
     TypeTransfert,
 )
-from app.models.notes import Note
 from app.models.paiements import Paiement
 from app.models.parametrage import AnneeScolaire, Niveau
 from app.schemas.eleve import (
@@ -250,12 +248,8 @@ async def delete_eleve(db: AsyncSession, eleve_id: UUID) -> None:
     eleve = await get_eleve(db, eleve_id)
     blocking: list[str] = []
     checks: list[tuple[str, type]] = [
-        ("notes", Note),
         ("paiements", Paiement),
-        ("historique de notes", HistoriqueNote),
         ("historique de paiements", HistoriquePaiement),
-        ("évaluations maternelle", EvaluationCompetence),
-        ("décisions de passage", DecisionPassage),
     ]
     for label, model in checks:
         if await _count_for_eleve(db, model, eleve_id) > 0:

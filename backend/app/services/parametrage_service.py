@@ -416,11 +416,8 @@ async def delete_classe(db: AsyncSession, classe_id: UUID) -> None:
     from app.models.eleve import Inscription
     from app.models.emploi_du_temps import SeanceCours
     from app.models.personnel import AffectationPedagogique
-    from app.models.presences import AppelPresence
-
     for label, model, col in [
         ("inscription(s)", Inscription, Inscription.classe_id),
-        ("appel(s) de présence", AppelPresence, AppelPresence.classe_id),
         ("affectation(s) enseignant", AffectationPedagogique, AffectationPedagogique.classe_id),
         ("séance(s) d'emploi du temps", SeanceCours, SeanceCours.classe_id),
     ]:
@@ -435,12 +432,9 @@ async def delete_classe(db: AsyncSession, classe_id: UUID) -> None:
 async def delete_matiere(db: AsyncSession, matiere_id: UUID) -> None:
     await get_matiere(db, matiere_id)
     from app.models.emploi_du_temps import SeanceCours
-    from app.models.notes import Evaluation
-
-    for label, model in [("évaluation(s)", Evaluation), ("séance(s)", SeanceCours)]:
-        n = await _count_where(db, model, model.matiere_id == matiere_id)
-        if n:
-            raise HTTPException(status_code=409, detail=f"Matière utilisée par {n} {label}")
+    n = await _count_where(db, SeanceCours, SeanceCours.matiere_id == matiere_id)
+    if n:
+        raise HTTPException(status_code=409, detail=f"Matière utilisée par {n} séance(s)")
     result = await db.execute(select(Matiere).where(Matiere.id == matiere_id))
     await db.delete(result.scalar_one())
     await db.flush()
@@ -451,11 +445,6 @@ async def delete_periode(db: AsyncSession, periode_id: UUID) -> None:
     periode = result.scalar_one_or_none()
     if periode is None:
         raise HTTPException(status_code=404, detail="Période introuvable")
-    from app.models.notes import Evaluation
-
-    n = await _count_where(db, Evaluation, Evaluation.periode_id == periode_id)
-    if n:
-        raise HTTPException(status_code=409, detail=f"Période utilisée par {n} évaluation(s)")
     await db.delete(periode)
     await db.flush()
 

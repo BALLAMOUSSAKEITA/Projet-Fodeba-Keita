@@ -3,12 +3,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.audit import AuditLog, HistoriqueNote, HistoriquePaiement
-from app.schemas.securite import (
-    AuditLogResponse,
-    HistoriqueNoteResponse,
-    HistoriquePaiementResponse,
-)
+from app.models.audit import AuditLog, HistoriquePaiement
+from app.schemas.securite import AuditLogResponse, HistoriquePaiementResponse
 
 
 async def log_audit(
@@ -50,35 +46,6 @@ async def list_audit_logs(
         query = query.where(AuditLog.action == action)
     result = await db.execute(query)
     return [AuditLogResponse.model_validate(r) for r in result.scalars().all()]
-
-
-async def list_historique_notes(
-    db: AsyncSession,
-    eleve_id: UUID | None = None,
-    limit: int = 100,
-) -> list[HistoriqueNoteResponse]:
-    query = select(HistoriqueNote).order_by(HistoriqueNote.created_at.desc()).limit(min(limit, 500))
-    if eleve_id:
-        query = query.where(HistoriqueNote.eleve_id == eleve_id)
-    result = await db.execute(query)
-    items = []
-    for h in result.scalars().all():
-        items.append(
-            HistoriqueNoteResponse(
-                id=h.id,
-                evaluation_id=h.evaluation_id,
-                eleve_id=h.eleve_id,
-                annee_scolaire_id=h.annee_scolaire_id,
-                ancienne_valeur=str(h.ancienne_valeur) if h.ancienne_valeur is not None else None,
-                nouvelle_valeur=str(h.nouvelle_valeur) if h.nouvelle_valeur is not None else None,
-                ancien_absent=h.ancien_absent,
-                nouveau_absent=h.nouveau_absent,
-                modifie_par_id=h.modifie_par_id,
-                ip_address=h.ip_address,
-                created_at=h.created_at,
-            )
-        )
-    return items
 
 
 async def list_historique_paiements(

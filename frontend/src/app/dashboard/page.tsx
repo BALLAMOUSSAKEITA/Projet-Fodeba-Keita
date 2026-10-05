@@ -26,8 +26,6 @@ export default function DashboardPage() {
     hasPermission("payments.collect") ||
     hasPermission("reports.view");
   const showPersonnel = hasPermission("personnel.view");
-  const showPresence = hasPermission("attendance.view") || hasPermission("attendance.manage");
-
   const shortcuts = useMemo(
     () =>
       filterVisibleNavItems(
@@ -68,14 +66,8 @@ export default function DashboardPage() {
     if (showPersonnel) {
       rows.push({ label: "Personnel actif", value: String(kpi.total_personnel) });
     }
-    if (showPresence) {
-      rows.push({
-        label: "Présence ce mois",
-        value: kpi.taux_presence_mois != null ? `${kpi.taux_presence_mois} %` : "—",
-      });
-    }
     return rows;
-  }, [kpi, showScolarite, showFinance, showPersonnel, showPresence]);
+  }, [kpi, showScolarite, showFinance, showPersonnel]);
 
   const roleLabel = user ? (ROLE_LABELS[user.role] ?? user.role) : "";
 

@@ -40,19 +40,6 @@ const paths: Record<NavIconName, ReactNode> = {
       <path d="M8 3v4M16 3v4M4 10h16" />
     </>
   ),
-  grades: (
-    <>
-      <path d="M7 4h10v16H7z" />
-      <path d="M10 9h6M10 13h6" />
-    </>
-  ),
-  "reports-card": (
-    <>
-      <path d="M6 4h12v16H6z" />
-      <path d="M9 9h6M9 13h6" />
-    </>
-  ),
-  attendance: <path d="M5 12 10 17 19 7" />,
   finance: (
     <>
       <rect x="3" y="7" width="18" height="12" rx="2" />
@@ -72,30 +59,6 @@ const paths: Record<NavIconName, ReactNode> = {
     </>
   ),
   analytics: <path d="M4 19V9M10 19V5M16 19v-7M22 19V3" />,
-  security: (
-    <>
-      <path d="M12 3 5 7v6c0 4.4 3.6 8 7 8s7-3.6 7-8V7l-7-4Z" />
-      <path d="M10 12 12 14 16 10" />
-    </>
-  ),
-  announcements: (
-    <>
-      <path d="M5 10v4c0 1.1.9 2 2 2h1l4 4V4L8 8H7c-1.1 0-2 .9-2 2Z" />
-    </>
-  ),
-  portal: (
-    <>
-      <circle cx="9" cy="9" r="2.5" />
-      <circle cx="15" cy="9" r="2.5" />
-      <path d="M4 19c0-2.8 2.2-5 5-5s5 2.2 5 5" />
-    </>
-  ),
-  settings: (
-    <>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2" />
-    </>
-  ),
 };
 
 export function NavIcon({ name, className = "h-[18px] w-[18px]" }: { name: NavIconName; className?: string }) {

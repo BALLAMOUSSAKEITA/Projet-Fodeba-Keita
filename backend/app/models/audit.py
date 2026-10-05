@@ -2,7 +2,7 @@ import enum
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String, Text, Uuid
+from sqlalchemy import ForeignKey, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -32,24 +32,6 @@ class AuditLog(Base, TimestampMixin):
     details: Mapped[str | None] = mapped_column(Text, nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-
-class HistoriqueNote(Base, TimestampMixin):
-    __tablename__ = "historique_notes"
-
-    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    note_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
-    evaluation_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
-    eleve_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("eleves.id"), nullable=False, index=True)
-    annee_scolaire_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("annees_scolaires.id"), nullable=False)
-    ancienne_valeur: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
-    nouvelle_valeur: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
-    ancien_absent: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    nouveau_absent: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    modifie_par_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
-    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
 
 
 class HistoriquePaiement(Base, TimestampMixin):

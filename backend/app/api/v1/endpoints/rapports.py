@@ -13,8 +13,6 @@ from app.schemas.rapports import (
     DashboardKPIResponse,
     GraphiquesResponse,
     RapportEffectifsResponse,
-    RapportPedagogiqueResponse,
-    RapportPresenceResponse,
     StatistiquesAnnuellesResponse,
 )
 from app.services import comptabilite_service, rapports_service
@@ -49,25 +47,6 @@ async def rapport_financier(
     _: User = Depends(require_any_permission("reports.view")),
 ):
     return await comptabilite_service.get_rapport_financier(db, date_debut, date_fin, annee_scolaire_id)
-
-
-@router.get("/pedagogique", response_model=RapportPedagogiqueResponse)
-async def rapport_pedagogique(
-    periode_id: UUID | None = Query(default=None),
-    db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_any_permission(*READ_PERMISSIONS)),
-):
-    return await rapports_service.get_rapport_pedagogique(db, periode_id)
-
-
-@router.get("/presence", response_model=RapportPresenceResponse)
-async def rapport_presence(
-    date_debut: date = Query(...),
-    date_fin: date = Query(...),
-    db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_any_permission(*READ_PERMISSIONS)),
-):
-    return await rapports_service.get_rapport_presence(db, date_debut, date_fin)
 
 
 @router.get("/annuel", response_model=StatistiquesAnnuellesResponse)
@@ -115,15 +94,13 @@ async def export_csv(
 
 @router.get("/export/excel")
 async def export_excel(
-    type: str = Query(..., pattern=r"^(effectifs|financier|pedagogique|annuel)$"),
+    type: str = Query(..., pattern=r"^(effectifs|financier|annuel)$"),
     date_debut: date | None = Query(default=None),
     date_fin: date | None = Query(default=None),
     annee_scolaire_id: UUID | None = Query(default=None),
-    periode_id: UUID | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_any_permission("reports.view")),
 ):
-    annee = annee_scolaire_id
     if type == "financier" and not date_debut:
         from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="date_debut et date_fin requis")
@@ -132,8 +109,7 @@ async def export_excel(
         type,
         date_debut=date_debut,
         date_fin=date_fin,
-        annee_id=annee,
-        periode_id=periode_id,
+        annee_id=annee_scolaire_id,
     )
     return Response(
         content=content,

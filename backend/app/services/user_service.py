@@ -1,13 +1,11 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select, update as sql_update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.security import hash_password
-from app.models.communication import Annonce, HistoriqueCommunication
-from app.models.notes import ValidationPeriode
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -141,20 +139,6 @@ async def delete_user_permanent(db: AsyncSession, user_id: UUID, actor_id: UUID)
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Impossible de supprimer le dernier super administrateur",
             )
-
-    await db.execute(
-        sql_update(ValidationPeriode)
-        .where(ValidationPeriode.valide_par_id == user_id)
-        .values(valide_par_id=None)
-    )
-    await db.execute(
-        sql_update(Annonce).where(Annonce.auteur_id == user_id).values(auteur_id=None)
-    )
-    await db.execute(
-        sql_update(HistoriqueCommunication)
-        .where(HistoriqueCommunication.envoye_par_id == user_id)
-        .values(envoye_par_id=None)
-    )
 
     await db.delete(user)
     await db.flush()

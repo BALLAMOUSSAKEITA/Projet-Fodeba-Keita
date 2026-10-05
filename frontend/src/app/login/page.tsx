@@ -65,7 +65,7 @@ export default function LoginPage() {
             Fodeba Keita
           </h1>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-            Gestion des inscriptions, notes, finances et communication avec les familles.
+            Gestion des inscriptions, classes, finances et personnel.
           </p>
         </div>
         <p className="text-xs text-slate-500">Conakry, Guinée</p>

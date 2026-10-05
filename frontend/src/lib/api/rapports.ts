@@ -3,8 +3,6 @@ import type {
   Graphiques,
   RapportEffectifs,
   RapportFinancier,
-  RapportPedagogique,
-  RapportPresence,
   StatistiquesAnnuelles,
 } from "@/types/rapports";
 import { apiDownload, apiFetch } from "./client";
@@ -30,19 +28,6 @@ export async function getRapportFinancier(
   return apiFetch<RapportFinancier>(`${base}/financier?${params}`, {}, token);
 }
 
-export async function getRapportPedagogique(token: string, periodeId?: string) {
-  const q = periodeId ? `?periode_id=${periodeId}` : "";
-  return apiFetch<RapportPedagogique>(`${base}/pedagogique${q}`, {}, token);
-}
-
-export async function getRapportPresence(token: string, dateDebut: string, dateFin: string) {
-  return apiFetch<RapportPresence>(
-    `${base}/presence?date_debut=${dateDebut}&date_fin=${dateFin}`,
-    {},
-    token,
-  );
-}
-
 export async function getStatistiquesAnnuelles(token: string) {
   return apiFetch<StatistiquesAnnuelles>(`${base}/annuel`, {}, token);
 }
@@ -62,7 +47,7 @@ export async function downloadRapportCsv(token: string, type: "effectifs" | "fin
 
 export async function downloadRapportExcel(
   token: string,
-  type: "effectifs" | "financier" | "pedagogique" | "annuel",
+  type: "effectifs" | "financier" | "annuel",
   dates?: { debut: string; fin: string; anneeId?: string },
 ) {
   let path = `${base}/export/excel?type=${type}`;

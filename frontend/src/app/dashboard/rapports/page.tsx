@@ -205,8 +205,6 @@ export default function RapportsPage() {
             <Item label="Recettes" value={fmt(annuel.total_recettes)} />
             <Item label="Dépenses" value={fmt(annuel.total_depenses)} />
             <Item label="Solde" value={fmt(annuel.solde_financier)} />
-            <Item label="Moyenne établissement" value={annuel.moyenne_generale_etablissement ? Number(annuel.moyenne_generale_etablissement).toFixed(2) : "—"} />
-            <Item label="Taux réussite" value={annuel.taux_reussite_global ? `${Number(annuel.taux_reussite_global).toFixed(1)} %` : "—"} />
             <Item label="Impayés" value={`${annuel.nombre_impayes} élève(s)`} />
           </dl>
         </div>

@@ -10,29 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.comptabilite import CategorieDepense, Depense, StatutDepense
 from app.models.paiements import Paiement, StatutPaiement
-from app.models.parametrage import Classe, Periode
+from app.models.parametrage import Classe
 from app.models.personnel import Personnel, StatutPersonnel
-from app.models.presences import AppelPresence, PresenceEleve
 from app.schemas.rapports import (
     DashboardKPIResponse,
     GraphiquesResponse,
     RapportEffectifsResponse,
-    RapportPedagogiqueClasseItem,
-    RapportPedagogiqueResponse,
-    RapportPresenceClasseItem,
-    RapportPresenceResponse,
     SerieGraphique,
     StatistiquesAnnuellesResponse,
 )
-from app.services import (
-    bulletin_service,
-    classe_service,
-    comptabilite_service,
-    eleve_service,
-    paiements_service,
-    parametrage_service,
-    pdf_service,
-)
+from app.services import classe_service, comptabilite_service, eleve_service, paiements_service, parametrage_service, pdf_service
 
 
 def _month_start(d: date) -> date:
@@ -77,8 +64,6 @@ async def get_dashboard_kpis(db: AsyncSession) -> DashboardKPIResponse:
     impayes = await paiements_service.list_impayes(db, annee.id if annee else None)
     total_impayes = sum((i.montant_restant for i in impayes), Decimal("0"))
 
-    taux_presence = await _taux_presence_periode(db, debut_mois, today)
-
     return DashboardKPIResponse(
         annee_libelle=annee_libelle,
         total_eleves=stats.total_eleves,
@@ -86,22 +71,9 @@ async def get_dashboard_kpis(db: AsyncSession) -> DashboardKPIResponse:
         total_personnel=pers_count,
         recettes_mois=recettes_mois,
         total_impayes=total_impayes,
-        taux_presence_mois=taux_presence,
+        taux_presence_mois=None,
         nombre_impayes=len(impayes),
     )
-
-
-async def _taux_presence_periode(db: AsyncSession, date_debut: date, date_fin: date) -> float | None:
-    result = await db.execute(
-        select(PresenceEleve.statut)
-        .join(AppelPresence, AppelPresence.id == PresenceEleve.appel_id)
-        .where(AppelPresence.date >= date_debut, AppelPresence.date <= date_fin)
-    )
-    stats = list(result.scalars().all())
-    if not stats:
-        return None
-    presents = sum(1 for s in stats if s in ("present", "retard", "excuse"))
-    return round(presents / len(stats) * 100, 1)
 
 
 async def get_rapport_effectifs(db: AsyncSession) -> RapportEffectifsResponse:
@@ -112,134 +84,6 @@ async def get_rapport_effectifs(db: AsyncSession) -> RapportEffectifsResponse:
         annee_libelle=annee.libelle if annee else "—",
         stats=stats,
         par_classe=[c.model_dump() for c in par_classe],
-    )
-
-
-async def get_rapport_pedagogique(
-    db: AsyncSession,
-    periode_id: UUID | None = None,
-) -> RapportPedagogiqueResponse:
-    annee = await parametrage_service.get_annee_active(db)
-    if annee is None:
-        raise HTTPException(status_code=404, detail="Année scolaire active introuvable")
-
-    if periode_id is None:
-        periodes = await db.execute(
-            select(Periode).where(Periode.annee_scolaire_id == annee.id).order_by(Periode.ordre.desc())
-        )
-        periode = periodes.scalars().first()
-        if periode is None:
-            raise HTTPException(status_code=404, detail="Aucune période trouvée")
-        periode_id = periode.id
-    else:
-        periode = await db.get(Periode, periode_id)
-        if periode is None:
-            raise HTTPException(status_code=404, detail="Période introuvable")
-
-    classes = await db.execute(select(Classe).where(Classe.annee_scolaire_id == annee.id).order_by(Classe.nom))
-    items: list[RapportPedagogiqueClasseItem] = []
-    for classe in classes.scalars().all():
-        try:
-            s = await bulletin_service.get_stats_pedagogiques(db, classe.id, periode_id)
-            items.append(
-                RapportPedagogiqueClasseItem(
-                    classe_id=classe.id,
-                    classe_nom=classe.nom,
-                    effectif=s.effectif,
-                    moyenne_classe=s.moyenne_classe,
-                    taux_reussite=s.taux_reussite,
-                    meilleur_eleve=s.meilleur_eleve,
-                )
-            )
-        except HTTPException:
-            items.append(
-                RapportPedagogiqueClasseItem(
-                    classe_id=classe.id,
-                    classe_nom=classe.nom,
-                    effectif=0,
-                    moyenne_classe=None,
-                    taux_reussite=None,
-                    meilleur_eleve=None,
-                )
-            )
-
-    return RapportPedagogiqueResponse(
-        periode_id=periode_id,
-        periode_libelle=periode.libelle if periode else "—",
-        classes=items,
-    )
-
-
-async def get_rapport_presence(
-    db: AsyncSession,
-    date_debut: date,
-    date_fin: date,
-) -> RapportPresenceResponse:
-    annee = await parametrage_service.get_annee_active(db)
-    if annee is None:
-        return RapportPresenceResponse(
-            date_debut=date_debut,
-            date_fin=date_fin,
-            total_jours_suivis=0,
-            jours_absents_total=0,
-            jours_retards_total=0,
-            taux_presence_global=None,
-            par_classe=[],
-        )
-
-    classes = list(
-        (await db.execute(select(Classe).where(Classe.annee_scolaire_id == annee.id).order_by(Classe.nom))).scalars().all()
-    )
-    par_classe: list[RapportPresenceClasseItem] = []
-    abs_total = ret_total = 0
-    total_records = 0
-
-    for classe in classes:
-        result = await db.execute(
-            select(PresenceEleve.statut)
-            .join(AppelPresence, AppelPresence.id == PresenceEleve.appel_id)
-            .where(
-                AppelPresence.classe_id == classe.id,
-                AppelPresence.date >= date_debut,
-                AppelPresence.date <= date_fin,
-            )
-        )
-        stats = list(result.scalars().all())
-        effectif = await classe_service.count_classe_effectif(db, classe.id, annee.id)
-        abs_c = sum(1 for s in stats if s == "absent")
-        ret_c = sum(1 for s in stats if s == "retard")
-        abs_total += abs_c
-        ret_total += ret_c
-        total_records += len(stats)
-        taux = round((len(stats) - abs_c) / len(stats) * 100, 1) if stats else None
-        par_classe.append(
-            RapportPresenceClasseItem(
-                classe_id=classe.id,
-                classe_nom=classe.nom,
-                effectif=effectif,
-                jours_absents=abs_c,
-                jours_retards=ret_c,
-                taux_presence=taux,
-            )
-        )
-
-    taux_global = round((total_records - abs_total) / total_records * 100, 1) if total_records else None
-    appels_count = (
-        await db.execute(
-            select(func.count())
-            .select_from(AppelPresence)
-            .where(AppelPresence.date >= date_debut, AppelPresence.date <= date_fin)
-        )
-    ).scalar_one()
-
-    return RapportPresenceResponse(
-        date_debut=date_debut,
-        date_fin=date_fin,
-        total_jours_suivis=appels_count,
-        jours_absents_total=abs_total,
-        jours_retards_total=ret_total,
-        taux_presence_global=taux_global,
-        par_classe=par_classe,
     )
 
 
@@ -260,20 +104,6 @@ async def get_statistiques_annuelles(db: AsyncSession) -> StatistiquesAnnuellesR
     rapport = await comptabilite_service.get_rapport_financier(db, annee.date_debut, fin, annee.id)
     impayes = await paiements_service.list_impayes(db, annee.id)
 
-    pedago = await get_rapport_pedagogique(db, None)
-    with_moy = [c for c in pedago.classes if c.moyenne_classe is not None]
-    moy_etab = None
-    taux_reussite = None
-    if with_moy:
-        moy_etab = sum(c.moyenne_classe for c in with_moy if c.moyenne_classe) / len(with_moy)
-        moy_etab = moy_etab.quantize(Decimal("0.01"))
-        with_taux = [c for c in with_moy if c.taux_reussite is not None]
-        if with_taux:
-            taux_reussite = sum(c.taux_reussite for c in with_taux) / len(with_taux)
-            taux_reussite = taux_reussite.quantize(Decimal("0.1"))
-
-    taux_presence = await _taux_presence_periode(db, annee.date_debut, fin)
-
     return StatistiquesAnnuellesResponse(
         etablissement=etab.nom if etab else "Groupe Scolaire Privé Fodeba Keita",
         annee_libelle=annee.libelle,
@@ -284,9 +114,9 @@ async def get_statistiques_annuelles(db: AsyncSession) -> StatistiquesAnnuellesR
         total_recettes=rapport.total_recettes,
         total_depenses=rapport.total_depenses,
         solde_financier=rapport.solde,
-        moyenne_generale_etablissement=moy_etab,
-        taux_reussite_global=taux_reussite,
-        taux_presence_annuel=taux_presence,
+        moyenne_generale_etablissement=None,
+        taux_reussite_global=None,
+        taux_presence_annuel=None,
         nombre_impayes=len(impayes),
     )
 
@@ -391,18 +221,6 @@ async def export_excel_rapport(db: AsyncSession, rapport_type: str, **kwargs) ->
         ws.append(["Recettes", float(rapport.total_recettes)])
         ws.append(["Dépenses", float(rapport.total_depenses)])
         ws.append(["Solde", float(rapport.solde)])
-    elif rapport_type == "pedagogique":
-        data = await get_rapport_pedagogique(db, kwargs.get("periode_id"))
-        ws.title = "Pédagogique"
-        ws.append(["Période", data.periode_libelle])
-        ws.append(["Classe", "Effectif", "Moyenne", "Taux réussite %"])
-        for c in data.classes:
-            ws.append([
-                c.classe_nom,
-                c.effectif,
-                float(c.moyenne_classe) if c.moyenne_classe else "",
-                float(c.taux_reussite) if c.taux_reussite else "",
-            ])
     elif rapport_type == "annuel":
         data = await get_statistiques_annuelles(db)
         ws.title = "Statistiques annuelles"
@@ -413,8 +231,7 @@ async def export_excel_rapport(db: AsyncSession, rapport_type: str, **kwargs) ->
             ["Recettes", float(data.total_recettes)],
             ["Dépenses", float(data.total_depenses)],
             ["Solde", float(data.solde_financier)],
-            ["Moyenne établissement", float(data.moyenne_generale_etablissement) if data.moyenne_generale_etablissement else ""],
-            ["Taux présence %", data.taux_presence_annuel or ""],
+            ["Impayés (élèves)", data.nombre_impayes],
         ]:
             ws.append(row)
     else:
@@ -464,9 +281,6 @@ async def export_pdf_rapport(db: AsyncSession, rapport_type: str, **kwargs) -> b
             f"Recettes : {data.total_recettes:,.0f} GNF",
             f"Dépenses : {data.total_depenses:,.0f} GNF",
             f"Solde : {data.solde_financier:,.0f} GNF",
-            f"Moyenne générale : {data.moyenne_generale_etablissement or '—'}",
-            f"Taux de réussite : {data.taux_reussite_global or '—'} %",
-            f"Taux de présence : {data.taux_presence_annuel or '—'} %",
             f"Impayés : {data.nombre_impayes} élève(s)",
         ]
         title = "STATISTIQUES ANNUELLES — DRE / INSPECTION"

@@ -1,8 +1,6 @@
 from app.models.eleve import Eleve, Inscription, Transfert, Tuteur
 from app.models.emploi_du_temps import CreneauHoraire, SeanceCours
-from app.models.bulletins import Competence, DecisionPassage, EvaluationCompetence
-from app.models.audit import AuditLog, HistoriqueNote, HistoriquePaiement
-from app.models.communication import Annonce, HistoriqueCommunication, ModeleMessage
+from app.models.audit import AuditLog, HistoriquePaiement
 from app.models.comptabilite import (
     BudgetLigne,
     CategorieDepense,
@@ -12,8 +10,6 @@ from app.models.comptabilite import (
 )
 from app.models.paie import AvanceSalaire, BulletinPaie, PeriodePaie
 from app.models.paiements import Paiement, RelanceImpaye, RemiseEleve, SequenceRecu, TarifNiveau, TrancheFrais
-from app.models.presences import AppelPresence, IncidentDisciplinaire, PresenceEleve
-from app.models.notes import Evaluation, Note, TypeEvaluation, ValidationPeriode
 from app.models.personnel import (
     AffectationPedagogique,
     CongeAbsence,
@@ -66,16 +62,6 @@ __all__ = [
     "CongeAbsence",
     "CreneauHoraire",
     "SeanceCours",
-    "TypeEvaluation",
-    "Evaluation",
-    "Note",
-    "ValidationPeriode",
-    "Competence",
-    "EvaluationCompetence",
-    "DecisionPassage",
-    "AppelPresence",
-    "PresenceEleve",
-    "IncidentDisciplinaire",
     "TarifNiveau",
     "TrancheFrais",
     "RemiseEleve",
@@ -90,10 +76,6 @@ __all__ = [
     "BudgetLigne",
     "CompteTresorerie",
     "EcritureComptable",
-    "Annonce",
-    "ModeleMessage",
-    "HistoriqueCommunication",
     "AuditLog",
-    "HistoriqueNote",
     "HistoriquePaiement",
 ]

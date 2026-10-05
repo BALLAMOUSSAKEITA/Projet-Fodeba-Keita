@@ -230,14 +230,11 @@ async def seed_default_users(db: AsyncSession, role_map: dict[str, Role]) -> Non
 
 async def run_seed(db: AsyncSession) -> None:
     from app.db.seed_parametrage import seed_parametrage
-    from app.db.seed_competences import seed_competences
     from app.db.seed_edt import seed_edt
-    from app.db.seed_notes import seed_notes
     from app.db.seed_personnel import seed_personnel
     from app.db.seed_paiements import seed_paiements
     from app.db.seed_paie import seed_paie
     from app.db.seed_comptabilite import seed_comptabilite
-    from app.db.seed_communication import seed_communication
 
     permission_map = await seed_permissions(db)
     role_map = await seed_roles(db, permission_map)
@@ -245,10 +242,7 @@ async def run_seed(db: AsyncSession) -> None:
     await seed_parametrage(db)
     await seed_personnel(db)
     await seed_edt(db)
-    await seed_notes(db)
-    await seed_competences(db)
     await seed_paiements(db)
     await seed_paie(db)
     await seed_comptabilite(db)
-    await seed_communication(db)
     await db.commit()

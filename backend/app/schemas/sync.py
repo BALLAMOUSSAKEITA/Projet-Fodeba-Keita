@@ -58,7 +58,7 @@ class SyncPullResponse(BaseModel):
 
 class SyncPushItem(BaseModel):
     client_id: str = Field(..., min_length=1, max_length=64)
-    entity_type: Literal["notes", "presence", "paiement"]
+    entity_type: Literal["paiement"]
     client_updated_at: datetime
     resolve_strategy: Literal["server_wins", "client_wins"] = "client_wins"
     payload: dict[str, Any]
