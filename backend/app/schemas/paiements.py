@@ -12,6 +12,10 @@ class TarifNiveauCreate(BaseModel):
     montant: Decimal = Field(..., ge=0)
 
 
+class TarifNiveauUpdate(BaseModel):
+    montant: Decimal = Field(..., ge=0)
+
+
 class TarifNiveauResponse(BaseModel):
     id: UUID
     annee_scolaire_id: UUID

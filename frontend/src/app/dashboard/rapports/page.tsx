@@ -3,14 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { BarChart } from "@/components/charts/BarChart";
 import {
-  downloadRapportCsv,
-  downloadRapportExcel,
-  downloadRapportPdf,
   getGraphiques,
   getRapportEffectifs,
   getRapportFinancier,
-  getRapportPedagogique,
-  getRapportPresence,
   getStatistiquesAnnuelles,
 } from "@/lib/api/rapports";
 import { getAnneeActive } from "@/lib/api/parametrage";
@@ -20,19 +15,13 @@ import type {
   Graphiques,
   RapportEffectifs,
   RapportFinancier,
-  RapportPedagogique,
-  RapportPresence,
   StatistiquesAnnuelles,
 } from "@/types/rapports";
 
-type Tab = "effectifs" | "financier" | "pedagogique" | "presence" | "annuel";
+type Tab = "effectifs" | "financier" | "annuel";
 
 function fmt(n: number | string) {
   return `${Math.round(Number(n)).toLocaleString("fr-FR")} GNF`;
-}
-
-function yearStart() {
-  return `${new Date().getFullYear()}-01-01`;
 }
 
 function todayIso() {
@@ -44,10 +33,8 @@ export default function RapportsPage() {
   const [graphiques, setGraphiques] = useState<Graphiques | null>(null);
   const [effectifs, setEffectifs] = useState<RapportEffectifs | null>(null);
   const [financier, setFinancier] = useState<RapportFinancier | null>(null);
-  const [pedagogique, setPedagogique] = useState<RapportPedagogique | null>(null);
-  const [presence, setPresence] = useState<RapportPresence | null>(null);
   const [annuel, setAnnuel] = useState<StatistiquesAnnuelles | null>(null);
-  const [dateDebut, setDateDebut] = useState(yearStart());
+  const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState(todayIso());
   const [anneeId, setAnneeId] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +60,6 @@ export default function RapportsPage() {
       if (tab === "financier" && anneeId) {
         setFinancier(await getRapportFinancier(token, dateDebut, dateFin, anneeId));
       }
-      if (tab === "pedagogique") setPedagogique(await getRapportPedagogique(token));
-      if (tab === "presence") setPresence(await getRapportPresence(token, dateDebut, dateFin));
       if (tab === "annuel") setAnnuel(await getStatistiquesAnnuelles(token));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur chargement");
@@ -84,26 +69,6 @@ export default function RapportsPage() {
   useEffect(() => {
     loadTab();
   }, [loadTab]);
-
-  async function handleExport(format: "csv" | "excel" | "pdf") {
-    const token = getToken();
-    if (!token) return;
-    try {
-      const dates = { debut: dateDebut, fin: dateFin, anneeId };
-      if (format === "csv") {
-        if (tab === "effectifs") await downloadRapportCsv(token, "effectifs");
-        else if (tab === "financier") await downloadRapportCsv(token, "financier", dates);
-      } else if (format === "excel") {
-        const t = tab === "annuel" ? "annuel" : tab === "pedagogique" ? "pedagogique" : tab === "financier" ? "financier" : "effectifs";
-        await downloadRapportExcel(token, t, tab === "financier" ? dates : undefined);
-      } else {
-        const t = tab === "annuel" ? "annuel" : tab === "financier" ? "financier" : "effectifs";
-        await downloadRapportPdf(token, t, tab === "financier" ? dates : undefined);
-      }
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Erreur export");
-    }
-  }
 
   if (!canView) {
     return (
@@ -115,16 +80,9 @@ export default function RapportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Rapports</h2>
-          <p className="mt-1 text-sm text-slate-600">Effectifs, finances, pédagogie et statistiques annuelles</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => handleExport("csv")} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">CSV</button>
-          <button type="button" onClick={() => handleExport("excel")} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">Excel</button>
-          <button type="button" onClick={() => handleExport("pdf")} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800">PDF</button>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900">Rapports</h2>
+        <p className="mt-1 text-sm text-slate-600">Effectifs, finances et synthèse annuelle</p>
       </div>
 
       {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -148,7 +106,7 @@ export default function RapportsPage() {
       )}
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
-        {(["effectifs", "financier", "pedagogique", "presence", "annuel"] as Tab[]).map((t) => (
+        {(["effectifs", "financier", "annuel"] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"
@@ -157,15 +115,25 @@ export default function RapportsPage() {
               tab === t ? "bg-emerald-700 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            {t === "annuel" ? "Annuel (DRE)" : t}
+            {t === "annuel" ? "Annuel (DRE)" : t === "financier" ? "Financier" : "Effectifs"}
           </button>
         ))}
       </div>
 
-      {(tab === "financier" || tab === "presence") && (
+      {tab === "financier" && (
         <div className="flex flex-wrap gap-3">
-          <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          <input
+            type="date"
+            value={dateDebut}
+            onChange={(e) => setDateDebut(e.target.value)}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="date"
+            value={dateFin}
+            onChange={(e) => setDateFin(e.target.value)}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
         </div>
       )}
 
@@ -227,75 +195,6 @@ export default function RapportsPage() {
         </div>
       )}
 
-      {tab === "pedagogique" && pedagogique && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <p className="border-b border-slate-100 px-4 py-3 text-sm font-medium">{pedagogique.periode_libelle}</p>
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left">Classe</th>
-                <th className="px-4 py-3 text-left">Effectif</th>
-                <th className="px-4 py-3 text-left">Moyenne</th>
-                <th className="px-4 py-3 text-left">Réussite</th>
-                <th className="px-4 py-3 text-left">Meilleur</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pedagogique.classes.map((c) => (
-                <tr key={c.classe_id} className="border-t border-slate-100">
-                  <td className="px-4 py-2">{c.classe_nom}</td>
-                  <td className="px-4 py-2">{c.effectif}</td>
-                  <td className="px-4 py-2">{c.moyenne_classe ? Number(c.moyenne_classe).toFixed(2) : "—"}</td>
-                  <td className="px-4 py-2">{c.taux_reussite ? `${Number(c.taux_reussite).toFixed(1)} %` : "—"}</td>
-                  <td className="px-4 py-2">{c.meilleur_eleve ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {tab === "presence" && presence && (
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-slate-500">Taux présence</p>
-              <p className="text-2xl font-bold">{presence.taux_presence_global != null ? `${presence.taux_presence_global} %` : "—"}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-red-700">Absences</p>
-              <p className="text-2xl font-bold">{presence.jours_absents_total}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-amber-700">Retards</p>
-              <p className="text-2xl font-bold">{presence.jours_retards_total}</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 text-left">Classe</th>
-                  <th className="px-4 py-3 text-left">Absences</th>
-                  <th className="px-4 py-3 text-left">Retards</th>
-                  <th className="px-4 py-3 text-left">Taux</th>
-                </tr>
-              </thead>
-              <tbody>
-                {presence.par_classe.map((c) => (
-                  <tr key={c.classe_id} className="border-t border-slate-100">
-                    <td className="px-4 py-2">{c.classe_nom}</td>
-                    <td className="px-4 py-2">{c.jours_absents}</td>
-                    <td className="px-4 py-2">{c.jours_retards}</td>
-                    <td className="px-4 py-2">{c.taux_presence != null ? `${c.taux_presence} %` : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {tab === "annuel" && annuel && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900">{annuel.etablissement}</h3>
@@ -308,7 +207,6 @@ export default function RapportsPage() {
             <Item label="Solde" value={fmt(annuel.solde_financier)} />
             <Item label="Moyenne établissement" value={annuel.moyenne_generale_etablissement ? Number(annuel.moyenne_generale_etablissement).toFixed(2) : "—"} />
             <Item label="Taux réussite" value={annuel.taux_reussite_global ? `${Number(annuel.taux_reussite_global).toFixed(1)} %` : "—"} />
-            <Item label="Taux présence" value={annuel.taux_presence_annuel != null ? `${annuel.taux_presence_annuel} %` : "—"} />
             <Item label="Impayés" value={`${annuel.nombre_impayes} élève(s)`} />
           </dl>
         </div>

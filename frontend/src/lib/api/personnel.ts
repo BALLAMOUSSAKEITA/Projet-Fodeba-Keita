@@ -66,6 +66,18 @@ export async function addContrat(
   }, token);
 }
 
+export async function updateContrat(
+  token: string,
+  personnelId: string,
+  contratId: string,
+  data: { salaire_mensuel?: number },
+) {
+  return apiFetch<Personnel>(`/api/v1/personnel/${personnelId}/contrats/${contratId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
+}
+
 export async function addAffectation(
   token: string,
   id: string,

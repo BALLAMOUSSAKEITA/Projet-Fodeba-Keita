@@ -30,6 +30,7 @@ from app.schemas.paiements import (
     RemiseEleveCreate,
     SituationEleveResponse,
     TarifNiveauCreate,
+    TarifNiveauUpdate,
     TrancheFraisCreate,
     TrancheSituation,
 )
@@ -129,6 +130,16 @@ async def create_tarif(db: AsyncSession, data: TarifNiveauCreate) -> TarifNiveau
         raise HTTPException(status_code=409, detail="Tarif déjà défini pour ce niveau et type")
     tarif = TarifNiveau(**data.model_dump())
     db.add(tarif)
+    await db.commit()
+    await db.refresh(tarif)
+    return tarif
+
+
+async def update_tarif(db: AsyncSession, tarif_id: UUID, data: TarifNiveauUpdate) -> TarifNiveau:
+    tarif = await db.get(TarifNiveau, tarif_id)
+    if tarif is None:
+        raise HTTPException(status_code=404, detail="Tarif introuvable")
+    tarif.montant = data.montant
     await db.commit()
     await db.refresh(tarif)
     return tarif

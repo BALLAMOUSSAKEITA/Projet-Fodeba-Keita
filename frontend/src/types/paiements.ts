@@ -1,3 +1,15 @@
+export interface TarifNiveau {
+  id: string;
+  annee_scolaire_id: string;
+  niveau_id: string;
+  niveau_code: string | null;
+  niveau_libelle: string | null;
+  type_frais_id: string;
+  type_frais_code: string | null;
+  type_frais_libelle: string | null;
+  montant: number;
+}
+
 export interface Paiement {
   id: string;
   eleve_id: string;

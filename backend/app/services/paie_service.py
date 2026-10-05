@@ -233,17 +233,24 @@ async def _build_bulletin(
     return bulletin
 
 
-async def generer_paie_mensuelle(db: AsyncSession, periode_id: UUID) -> list[BulletinPaieResponse]:
+async def generer_paie_mensuelle(
+    db: AsyncSession,
+    periode_id: UUID,
+    personnel_id: UUID | None = None,
+) -> list[BulletinPaieResponse]:
     periode = await db.get(PeriodePaie, periode_id)
     if periode is None:
         raise HTTPException(status_code=404, detail="Période introuvable")
     if periode.statut == StatutPeriodePaie.CLOTUREE.value:
         raise HTTPException(status_code=422, detail="Période clôturée")
 
-    result = await db.execute(
-        select(Personnel).where(Personnel.statut == StatutPersonnel.ACTIF.value)
-    )
+    query = select(Personnel).where(Personnel.statut == StatutPersonnel.ACTIF.value)
+    if personnel_id is not None:
+        query = query.where(Personnel.id == personnel_id)
+    result = await db.execute(query)
     personnel_list = list(result.scalars().all())
+    if personnel_id is not None and not personnel_list:
+        raise HTTPException(status_code=404, detail="Personnel introuvable ou inactif")
     responses: list[BulletinPaieResponse] = []
 
     for pers in personnel_list:

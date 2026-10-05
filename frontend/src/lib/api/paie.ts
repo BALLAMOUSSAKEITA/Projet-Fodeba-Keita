@@ -14,8 +14,20 @@ export async function createPeriodePaie(token: string, annee: number, mois: numb
   }, token);
 }
 
-export async function genererPaie(token: string, periodeId: string) {
-  return apiFetch<BulletinPaie[]>(`${base}/periodes/${periodeId}/generer`, { method: "POST" }, token);
+export async function genererPaie(token: string, periodeId: string, personnelId?: string) {
+  const q = personnelId ? `?personnel_id=${personnelId}` : "";
+  return apiFetch<BulletinPaie[]>(`${base}/periodes/${periodeId}/generer${q}`, { method: "POST" }, token);
+}
+
+export async function updateBulletinPaie(
+  token: string,
+  bulletinId: string,
+  data: { prime_autre?: number },
+) {
+  return apiFetch<BulletinPaie>(`${base}/bulletins/${bulletinId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  }, token);
 }
 
 export async function listBulletinsPaie(token: string, periodeId: string) {

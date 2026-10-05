@@ -1,4 +1,11 @@
-import type { CaisseJournaliere, ImpayeItem, Paiement, SituationEleve, TrancheOption } from "@/types/paiements";
+import type {
+  CaisseJournaliere,
+  ImpayeItem,
+  Paiement,
+  SituationEleve,
+  TarifNiveau,
+  TrancheOption,
+} from "@/types/paiements";
 import { apiDownload, apiFetch } from "./client";
 
 const base = "/api/v1/paiements";
@@ -40,6 +47,25 @@ export async function relancerImpaye(
 
 export async function getCaisseJournaliere(token: string, date: string) {
   return apiFetch<CaisseJournaliere>(`${base}/caisse/journaliere?date=${date}`, {}, token);
+}
+
+export async function listTarifs(token: string, anneeId: string) {
+  return apiFetch<TarifNiveau[]>(`${base}/tarifs?annee_scolaire_id=${anneeId}`, {}, token);
+}
+
+export async function createTarif(
+  token: string,
+  data: { annee_scolaire_id: string; niveau_id: string; type_frais_id: string; montant: number },
+) {
+  return apiFetch<TarifNiveau>(`${base}/tarifs`, { method: "POST", body: JSON.stringify(data) }, token);
+}
+
+export async function updateTarif(token: string, tarifId: string, montant: number) {
+  return apiFetch<TarifNiveau>(
+    `${base}/tarifs/${tarifId}`,
+    { method: "PATCH", body: JSON.stringify({ montant }) },
+    token,
+  );
 }
 
 export async function listTranches(token: string, anneeId: string, typeFraisId: string) {

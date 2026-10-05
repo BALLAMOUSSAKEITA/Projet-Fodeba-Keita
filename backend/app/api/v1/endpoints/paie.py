@@ -44,10 +44,11 @@ async def create_periode(
 @router.post("/periodes/{periode_id}/generer", response_model=list[BulletinPaieResponse])
 async def generer_paie(
     periode_id: UUID,
+    personnel_id: UUID | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_permission(WRITE_PERMISSION)),
 ):
-    return await paie_service.generer_paie_mensuelle(db, periode_id)
+    return await paie_service.generer_paie_mensuelle(db, periode_id, personnel_id)
 
 
 @router.get("/bulletins", response_model=list[BulletinPaieResponse])

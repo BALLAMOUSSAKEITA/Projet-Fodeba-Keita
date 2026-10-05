@@ -4,21 +4,25 @@ import { useCallback, useEffect, useState } from "react";
 import {
   annulerPaiement,
   createPaiement,
+  createTarif,
   downloadRecuPdf,
   getCaisseJournaliere,
   getSituationEleve,
   listImpayes,
-  listTranches,
+  listTarifs,
   relancerImpaye,
+  updateTarif,
 } from "@/lib/api/paiements";
 import { getClasseEleves } from "@/lib/api/classes";
-import { getAnneeActive, listClasses, listTypesFrais } from "@/lib/api/parametrage";
+import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
+import { listClasses, listNiveaux, listTypesFrais } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
+import type { Niveau } from "@/types/parametrage";
 import type { CaisseJournaliere, ImpayeItem, Paiement, SituationEleve } from "@/types/paiements";
 import type { Classe, TypeFrais } from "@/types/parametrage";
 
-type Tab = "encaissement" | "impayes" | "caisse";
+type Tab = "encaissement" | "impayes" | "caisse" | "scolarite";
 
 const MODES = [
   { value: "especes", label: "Espèces" },
@@ -37,26 +41,26 @@ function fmt(n: number) {
 }
 
 export default function FinancePage() {
+  const { anneeId, anneeLibelle } = useAnneeScolaire();
   const [tab, setTab] = useState<Tab>("encaissement");
   const [classes, setClasses] = useState<Classe[]>([]);
   const [typesFrais, setTypesFrais] = useState<TypeFrais[]>([]);
   const [classeId, setClasseId] = useState("");
   const [eleveId, setEleveId] = useState("");
   const [eleves, setEleves] = useState<{ id: string; nom: string; prenoms: string; matricule: string }[]>([]);
-  const [typeFraisId, setTypeFraisId] = useState("");
-  const [trancheId, setTrancheId] = useState("");
-  const [tranches, setTranches] = useState<{ id: string; libelle: string }[]>([]);
   const [montant, setMontant] = useState("");
-  const [mode, setMode] = useState("especes");
-  const [reference, setReference] = useState("");
   const [situation, setSituation] = useState<SituationEleve | null>(null);
   const [lastPaiement, setLastPaiement] = useState<Paiement | null>(null);
   const [impayes, setImpayes] = useState<ImpayeItem[]>([]);
   const [caisse, setCaisse] = useState<CaisseJournaliere | null>(null);
   const [caisseDate, setCaisseDate] = useState(todayIso());
-  const [anneeId, setAnneeId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [niveaux, setNiveaux] = useState<Niveau[]>([]);
+  const [tarifByNiveau, setTarifByNiveau] = useState<Record<string, { tarifId: string; montant: string }>>({});
+  const [montantDraft, setMontantDraft] = useState<Record<string, string>>({});
+  const [loadingTarifs, setLoadingTarifs] = useState(false);
+  const [savingNiveauId, setSavingNiveauId] = useState<string | null>(null);
 
   const canCollect = hasPermission("payments.collect");
   const canView = canCollect || hasPermission("payments.view");
@@ -64,18 +68,47 @@ export default function FinancePage() {
 
   useEffect(() => {
     const token = getToken();
-    if (!token) return;
-    getAnneeActive(token).then((a) => {
-      setAnneeId(a.id);
-      Promise.all([listClasses(token, a.id), listTypesFrais(token)]).then(([c, tf]) => {
-        setClasses(c);
-        setTypesFrais(tf);
-        if (c.length) setClasseId(c[0].id);
-        const scol = tf.find((t) => t.code === "SCOLARITE") ?? tf[0];
-        if (scol) setTypeFraisId(scol.id);
-      });
+    if (!token || !anneeId) return;
+    Promise.all([listClasses(token, anneeId), listTypesFrais(token), listNiveaux(token)]).then(([c, tf, n]) => {
+      setClasses(c);
+      setTypesFrais(tf);
+      setNiveaux(n);
+      if (c.length) setClasseId(c[0].id);
     });
-  }, []);
+  }, [anneeId]);
+
+  const loadTarifsScolarite = useCallback(async () => {
+    const token = getToken();
+    if (!token || !anneeId) return;
+    setLoadingTarifs(true);
+    setError(null);
+    try {
+      const all = await listTarifs(token, anneeId);
+      const scol = all.filter((t) => t.type_frais_code === "SCOLARITE");
+      const byNiveau: Record<string, { tarifId: string; montant: string }> = {};
+      const draft: Record<string, string> = {};
+      for (const t of scol) {
+        byNiveau[t.niveau_id] = { tarifId: t.id, montant: String(t.montant) };
+        draft[t.niveau_id] = String(Math.round(Number(t.montant)));
+      }
+      setTarifByNiveau(byNiveau);
+      const draftAll: Record<string, string> = {};
+      for (const n of niveaux) {
+        draftAll[n.id] = byNiveau[n.id]?.montant ?? "";
+      }
+      setMontantDraft(draftAll);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Impossible de charger les tarifs");
+    } finally {
+      setLoadingTarifs(false);
+    }
+  }, [anneeId, niveaux]);
+
+  useEffect(() => {
+    if (tab === "scolarite" && niveaux.length > 0) {
+      loadTarifsScolarite();
+    }
+  }, [tab, niveaux, loadTarifsScolarite]);
 
   useEffect(() => {
     const token = getToken();
@@ -91,15 +124,6 @@ export default function FinancePage() {
     if (!token || !eleveId) return;
     getSituationEleve(token, eleveId).then(setSituation).catch(() => setSituation(null));
   }, [eleveId, lastPaiement]);
-
-  useEffect(() => {
-    const token = getToken();
-    if (!token || !anneeId || !typeFraisId) return;
-    listTranches(token, anneeId, typeFraisId).then((t) => {
-      setTranches(t);
-      setTrancheId(t[0]?.id ?? "");
-    });
-  }, [anneeId, typeFraisId]);
 
   const loadImpayes = useCallback(async () => {
     const token = getToken();
@@ -133,17 +157,19 @@ export default function FinancePage() {
     setSaving(true);
     setError(null);
     try {
+      const scolariteType = typesFrais.find((t) => t.code === "SCOLARITE");
+      if (!scolariteType) {
+        setError("Type de frais « Scolarité » introuvable.");
+        return;
+      }
       const p = await createPaiement(token, {
         eleve_id: eleveId,
-        type_frais_id: typeFraisId,
-        tranche_id: trancheId || undefined,
+        type_frais_id: scolariteType.id,
         montant: Number(montant),
-        mode_paiement: mode,
-        reference_externe: reference || undefined,
+        mode_paiement: "especes",
       });
       setLastPaiement(p);
       setMontant("");
-      setReference("");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur encaissement");
     } finally {
@@ -158,6 +184,46 @@ export default function FinancePage() {
       await downloadRecuPdf(token, lastPaiement.id, `${lastPaiement.numero_recu}.pdf`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur PDF");
+    }
+  }
+
+  async function handleSaveTarifNiveau(niveauId: string) {
+    const token = getToken();
+    if (!token || !canCollect || !anneeId) return;
+    const raw = montantDraft[niveauId]?.trim();
+    if (!raw) {
+      setError("Indiquez un montant pour ce niveau.");
+      return;
+    }
+    const montant = Number(raw);
+    if (!Number.isFinite(montant) || montant < 0) {
+      setError("Montant invalide.");
+      return;
+    }
+    const scolariteType = typesFrais.find((t) => t.code === "SCOLARITE");
+    if (!scolariteType) {
+      setError("Type de frais « Scolarité » introuvable.");
+      return;
+    }
+    setSavingNiveauId(niveauId);
+    setError(null);
+    try {
+      const existing = tarifByNiveau[niveauId];
+      if (existing?.tarifId) {
+        await updateTarif(token, existing.tarifId, montant);
+      } else {
+        await createTarif(token, {
+          annee_scolaire_id: anneeId,
+          niveau_id: niveauId,
+          type_frais_id: scolariteType.id,
+          montant,
+        });
+      }
+      await loadTarifsScolarite();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur enregistrement tarif");
+    } finally {
+      setSavingNiveauId(null);
     }
   }
 
@@ -194,7 +260,7 @@ export default function FinancePage() {
       {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
-        {(["encaissement", "impayes", "caisse"] as Tab[]).map((t) => (
+        {(["encaissement", "impayes", "caisse", "scolarite"] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"
@@ -203,7 +269,13 @@ export default function FinancePage() {
               tab === t ? "bg-emerald-700 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            {t === "encaissement" ? "Encaissement" : t === "impayes" ? "Impayés" : "Caisse"}
+            {t === "encaissement"
+              ? "Encaissement"
+              : t === "impayes"
+                ? "Impayés"
+                : t === "caisse"
+                  ? "Caisse"
+                  : "Scolarité"}
           </button>
         ))}
       </div>
@@ -212,65 +284,47 @@ export default function FinancePage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <form onSubmit={handleEncaisser} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h3 className="font-semibold text-slate-900">Nouvel encaissement</h3>
-            <select
-              value={classeId}
-              onChange={(e) => setClasseId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {classes.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
-            </select>
-            <select
-              required
-              value={eleveId}
-              onChange={(e) => setEleveId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {eleves.map((el) => (
-                <option key={el.id} value={el.id}>{el.prenoms} {el.nom} ({el.matricule})</option>
-              ))}
-            </select>
-            <select
-              value={typeFraisId}
-              onChange={(e) => setTypeFraisId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {typesFrais.map((t) => <option key={t.id} value={t.id}>{t.libelle}</option>)}
-            </select>
-            {tranches.length > 0 && (
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">Classe</span>
               <select
-                value={trancheId}
-                onChange={(e) => setTrancheId(e.target.value)}
+                value={classeId}
+                onChange={(e) => setClasseId(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               >
-                <option value="">— Sans tranche —</option>
-                {tranches.map((t) => <option key={t.id} value={t.id}>{t.libelle}</option>)}
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nom}
+                  </option>
+                ))}
               </select>
-            )}
-            <input
-              type="number"
-              required
-              min={1}
-              value={montant}
-              onChange={(e) => setMontant(e.target.value)}
-              placeholder="Montant (GNF)"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
-            {(mode === "orange_money" || mode === "mtn_momo") && (
+            </label>
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">Élève</span>
+              <select
+                required
+                value={eleveId}
+                onChange={(e) => setEleveId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                {eleves.map((el) => (
+                  <option key={el.id} value={el.id}>
+                    {el.prenoms} {el.nom} ({el.matricule})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">Montant payé (GNF)</span>
               <input
-                type="text"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                placeholder="Référence transaction"
+                type="number"
+                required
+                min={1}
+                value={montant}
+                onChange={(e) => setMontant(e.target.value)}
+                placeholder="Ex. 500000"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-            )}
+            </label>
             {canCollect && (
               <button
                 type="submit"
@@ -387,6 +441,82 @@ export default function FinancePage() {
           </table>
           {impayes.length === 0 && (
             <p className="px-4 py-6 text-sm text-slate-500">Aucun impayé.</p>
+          )}
+        </div>
+      )}
+
+      {tab === "scolarite" && (
+        <div className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h3 className="font-semibold text-slate-900">Montants de scolarité par niveau</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Année scolaire : <span className="font-medium">{anneeLibelle || "—"}</span>
+              {!canCollect && " (lecture seule)"}
+            </p>
+          </div>
+          {loadingTarifs ? (
+            <p className="text-sm text-slate-500">Chargement des tarifs…</p>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50 text-left text-slate-600">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Niveau</th>
+                    <th className="px-4 py-3 font-medium">Montant annuel (GNF)</th>
+                    {canCollect && <th className="px-4 py-3 font-medium"></th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {niveaux.length === 0 ? (
+                    <tr>
+                      <td colSpan={canCollect ? 3 : 2} className="px-4 py-6 text-center text-slate-500">
+                        Aucun niveau configuré
+                      </td>
+                    </tr>
+                  ) : (
+                    niveaux.map((n) => (
+                      <tr key={n.id} className="border-t border-slate-100">
+                        <td className="px-4 py-3 font-medium text-slate-900">
+                          {n.libelle}
+                          <span className="ml-2 font-mono text-xs text-slate-400">{n.code}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="number"
+                            min={0}
+                            step={1000}
+                            disabled={!canCollect}
+                            value={montantDraft[n.id] ?? ""}
+                            onChange={(e) =>
+                              setMontantDraft((d) => ({ ...d, [n.id]: e.target.value }))
+                            }
+                            placeholder="Ex. 2500000"
+                            className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50"
+                          />
+                          {tarifByNiveau[n.id] && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              Enregistré : {fmt(Number(tarifByNiveau[n.id].montant))}
+                            </p>
+                          )}
+                        </td>
+                        {canCollect && (
+                          <td className="px-4 py-3">
+                            <button
+                              type="button"
+                              disabled={savingNiveauId === n.id}
+                              onClick={() => handleSaveTarifNiveau(n.id)}
+                              className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
+                            >
+                              {savingNiveauId === n.id ? "…" : tarifByNiveau[n.id] ? "Mettre à jour" : "Enregistrer"}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}

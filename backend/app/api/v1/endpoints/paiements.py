@@ -22,6 +22,7 @@ from app.schemas.paiements import (
     SituationEleveResponse,
     TarifNiveauCreate,
     TarifNiveauResponse,
+    TarifNiveauUpdate,
     TrancheFraisCreate,
     TrancheFraisResponse,
 )
@@ -50,6 +51,18 @@ async def create_tarif(
 ):
     tarif = await paiements_service.create_tarif(db, data)
     items = await paiements_service.list_tarifs(db, data.annee_scolaire_id)
+    return next(i for i in items if i["id"] == tarif.id)
+
+
+@router.patch("/tarifs/{tarif_id}", response_model=TarifNiveauResponse)
+async def update_tarif(
+    tarif_id: UUID,
+    data: TarifNiveauUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission(WRITE_PERMISSION)),
+):
+    tarif = await paiements_service.update_tarif(db, tarif_id, data)
+    items = await paiements_service.list_tarifs(db, tarif.annee_scolaire_id)
     return next(i for i in items if i["id"] == tarif.id)
 
 
