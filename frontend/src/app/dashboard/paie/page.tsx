@@ -30,6 +30,10 @@ function parseMonth(value: string) {
   return { annee: y, mois: m };
 }
 
+function rowTotal(row: RowState) {
+  return (Number(row.salaire) || 0) + (Number(row.prime) || 0);
+}
+
 type RowState = {
   personnelId: string;
   nom: string;
@@ -187,10 +191,7 @@ export default function PaiePage() {
     }
   }
 
-  const totalNet = useMemo(
-    () => rows.reduce((s, r) => s + (r.bulletin ? Number(r.bulletin.net_a_payer) : 0), 0),
-    [rows],
-  );
+  const totalMois = useMemo(() => rows.reduce((s, r) => s + rowTotal(r), 0), [rows]);
 
   if (!canGenerate && !canMesBulletins) {
     return (
@@ -211,7 +212,7 @@ export default function PaiePage() {
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-4 py-3 text-left">Période</th>
-                <th className="px-4 py-3 text-left">Net payé</th>
+                <th className="px-4 py-3 text-left">Montant payé</th>
                 <th className="px-4 py-3 text-left">Statut</th>
               </tr>
             </thead>
@@ -219,7 +220,9 @@ export default function PaiePage() {
               {mesBulletins.map((b) => (
                 <tr key={b.id} className="border-t border-slate-100">
                   <td className="px-4 py-2">{b.periode_libelle}</td>
-                  <td className="px-4 py-2 font-semibold">{fmt(Number(b.net_a_payer))}</td>
+                  <td className="px-4 py-2 font-semibold">
+                    {fmt(Number(b.salaire_base) + Number(b.prime_autre))}
+                  </td>
                   <td className="px-4 py-2 capitalize">{b.statut}</td>
                 </tr>
               ))}
@@ -265,7 +268,7 @@ export default function PaiePage() {
           {payingId === "all" && loading ? "Paiement en cours…" : "Payer tout le personnel"}
         </button>
         <p className="text-sm text-slate-600">
-          Net du mois (bulletins) : <span className="font-semibold text-slate-900">{fmt(totalNet)}</span>
+          Total salaires + primes : <span className="font-semibold text-slate-900">{fmt(totalMois)}</span>
         </p>
       </div>
 
@@ -276,7 +279,7 @@ export default function PaiePage() {
               <th className="px-4 py-3 text-left">Employé</th>
               <th className="px-4 py-3 text-left">Salaire (GNF)</th>
               <th className="px-4 py-3 text-left">Prime (GNF)</th>
-              <th className="px-4 py-3 text-left">Net à payer</th>
+              <th className="px-4 py-3 text-left">Total payé</th>
               <th className="px-4 py-3 text-left">Statut</th>
               <th className="px-4 py-3 text-left">Action</th>
             </tr>
@@ -321,9 +324,7 @@ export default function PaiePage() {
                     placeholder="0"
                   />
                 </td>
-                <td className="px-4 py-2 font-medium">
-                  {row.bulletin ? fmt(Number(row.bulletin.net_a_payer)) : "—"}
-                </td>
+                <td className="px-4 py-2 font-medium">{fmt(rowTotal(row))}</td>
                 <td className="px-4 py-2 capitalize">{row.bulletin?.statut ?? "—"}</td>
                 <td className="px-4 py-2">
                   <button

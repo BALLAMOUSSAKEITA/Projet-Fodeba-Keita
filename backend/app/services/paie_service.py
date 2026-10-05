@@ -102,25 +102,18 @@ def _calculer_montants(
     indemnite_logement: Decimal = Decimal("0"),
     autres_retenues: Decimal = Decimal("0"),
 ) -> dict[str, Decimal | int]:
-    prime_anciennete = Decimal("0")
-    indemnite_transport = INDEMNITE_TRANSPORT
-    retenue_absences = _q((salaire_base / Decimal("30")) * Decimal(jours_absence))
-    brut = _q(salaire_base + prime_anciennete + prime_autre + indemnite_transport + indemnite_logement)
-    retenue_cnss = _q(brut * TAUX_CNSS)
-    base_its = max(brut - retenue_cnss, Decimal("0"))
-    retenue_its = _q(base_its * TAUX_ITS)
-    net = _q(
-        brut - retenue_cnss - retenue_its - retenue_absences - retenue_avances - autres_retenues
-    )
+    """Montant versé = salaire saisi + prime (sans retenues automatiques)."""
+    del jours_absence, retenue_avances, indemnite_logement, autres_retenues
+    brut = _q(salaire_base + prime_autre)
     return {
-        "prime_anciennete": prime_anciennete,
-        "indemnite_transport": indemnite_transport,
-        "retenue_absences": retenue_absences,
-        "retenue_cnss": retenue_cnss,
-        "retenue_its": retenue_its,
+        "prime_anciennete": Decimal("0"),
+        "indemnite_transport": Decimal("0"),
+        "retenue_absences": Decimal("0"),
+        "retenue_cnss": Decimal("0"),
+        "retenue_its": Decimal("0"),
         "brut": brut,
-        "net_a_payer": max(net, Decimal("0")),
-        "jours_absence": jours_absence,
+        "net_a_payer": brut,
+        "jours_absence": 0,
     }
 
 
@@ -221,7 +214,7 @@ async def _build_bulletin(
     bulletin.retenue_cnss = calc["retenue_cnss"]  # type: ignore[assignment]
     bulletin.retenue_its = calc["retenue_its"]  # type: ignore[assignment]
     bulletin.retenue_absences = calc["retenue_absences"]  # type: ignore[assignment]
-    bulletin.retenue_avances = avances
+    bulletin.retenue_avances = Decimal("0")
     bulletin.autres_retenues = autres_retenues
     bulletin.brut = calc["brut"]  # type: ignore[assignment]
     bulletin.net_a_payer = calc["net_a_payer"]  # type: ignore[assignment]

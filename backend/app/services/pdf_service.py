@@ -322,7 +322,13 @@ def _draw_recu_detail_row(
     return y - row_h
 
 
-def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
+def generate_recu_paiement(
+    paiement,
+    etab: Etablissement | None,
+    *,
+    annee_libelle: str = "",
+    classe_nom: str | None = None,
+) -> bytes:
     mode_labels = {
         "especes": "Espèces",
         "orange_money": "Orange Money",
@@ -331,10 +337,10 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
         "cheque": "Chèque",
     }
 
-    obsidian = HexColor("#18181b")
-    ember = HexColor("#ff5a00")
-    border = HexColor("#e4e4e7")
-    muted = HexColor("#71717a")
+    obsidian = HexColor("#14532d")
+    accent = HexColor("#047857")
+    border = HexColor("#d1fae5")
+    muted = HexColor("#4b5563")
 
     card_w = 16 * cm
     card_h = 20.5 * cm
@@ -356,16 +362,16 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
     header_y = card_y + card_h - header_h
     c.setFillColor(obsidian)
     c.rect(card_x, header_y, card_w, header_h, fill=1, stroke=0)
-    c.setFillColor(ember)
-    c.rect(card_x, header_y, card_w, 0.14 * cm, fill=1, stroke=0)
+    c.setFillColor(accent)
+    c.rect(card_x, header_y, card_w, 0.18 * cm, fill=1, stroke=0)
 
     nom = etab.nom if etab else "Groupe Scolaire Privé Fodeba Keita"
     c.setFillColor(HexColor("#ffffff"))
     c.setFont("Helvetica-Bold", 13)
     c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.35 * cm, nom)
     c.setFont("Helvetica", 9)
-    c.setFillColor(HexColor("#a1a1aa"))
-    c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.95 * cm, "REÇU DE PAIEMENT OFFICIEL")
+    c.setFillColor(HexColor("#bbf7d0"))
+    c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.95 * cm, "REÇU DE PAIEMENT — SCOLARITÉ")
 
     contact_parts: list[str] = []
     if etab:
@@ -397,7 +403,7 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
     c.setFillColor(HexColor("#fafafa"))
     c.setStrokeColor(border)
     c.roundRect(card_x + 0.6 * cm, block_y - 1.35 * cm, card_w - 1.2 * cm, 1.35 * cm, 6, fill=1, stroke=1)
-    c.setFillColor(ember)
+    c.setFillColor(accent)
     c.rect(card_x + 0.6 * cm, block_y - 1.35 * cm, 0.12 * cm, 1.35 * cm, fill=1, stroke=0)
     c.setFillColor(muted)
     c.setFont("Helvetica", 8)
@@ -413,9 +419,12 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
     table_w = card_w - 1.2 * cm
     y = block_y - 1.75 * cm
 
-    rows: list[tuple[str, str]] = [
-        ("Nature des frais", paiement.type_frais_libelle),
-    ]
+    rows: list[tuple[str, str]] = []
+    if annee_libelle:
+        rows.append(("Année scolaire", annee_libelle))
+    if classe_nom:
+        rows.append(("Classe", classe_nom))
+    rows.append(("Nature des frais", paiement.type_frais_libelle))
     if paiement.tranche_libelle:
         rows.append(("Tranche", paiement.tranche_libelle))
     if paiement.libelle:
@@ -431,7 +440,7 @@ def generate_recu_paiement(paiement, etab: Etablissement | None) -> bytes:
 
     amount_box_h = 2.1 * cm
     amount_y = y - 0.35 * cm - amount_box_h
-    c.setFillColor(obsidian)
+    c.setFillColor(accent)
     c.roundRect(table_x, amount_y, table_w, amount_box_h, 8, fill=1, stroke=0)
     c.setFillColor(HexColor("#a1a1aa"))
     c.setFont("Helvetica", 8)

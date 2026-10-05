@@ -672,4 +672,24 @@ async def get_caisse_journaliere(
 async def generate_recu_pdf(db: AsyncSession, paiement_id: UUID) -> bytes:
     paiement_resp = await get_paiement(db, paiement_id)
     etab = await parametrage_service.get_etablissement(db)
-    return pdf_service.generate_recu_paiement(paiement_resp, etab)
+    annee = await db.get(AnneeScolaire, paiement_resp.annee_scolaire_id)
+    annee_libelle = annee.libelle if annee else ""
+    classe_nom: str | None = None
+    insc = await db.execute(
+        select(Classe.nom)
+        .join(Inscription, Inscription.classe_id == Classe.id)
+        .where(
+            Inscription.eleve_id == paiement_resp.eleve_id,
+            Inscription.annee_scolaire_id == paiement_resp.annee_scolaire_id,
+        )
+        .limit(1)
+    )
+    row = insc.first()
+    if row:
+        classe_nom = row[0]
+    return pdf_service.generate_recu_paiement(
+        paiement_resp,
+        etab,
+        annee_libelle=annee_libelle,
+        classe_nom=classe_nom,
+    )

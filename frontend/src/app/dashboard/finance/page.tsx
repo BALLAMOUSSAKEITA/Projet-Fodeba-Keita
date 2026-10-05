@@ -21,6 +21,7 @@ import { getToken, hasPermission } from "@/lib/auth/session";
 import type { Niveau } from "@/types/parametrage";
 import type { CaisseJournaliere, ImpayeItem, Paiement, SituationEleve } from "@/types/paiements";
 import type { Classe, TypeFrais } from "@/types/parametrage";
+import { RecuPaiementCard } from "@/components/finance/RecuPaiementCard";
 
 type Tab = "encaissement" | "impayes" | "caisse" | "scolarite";
 
@@ -61,6 +62,7 @@ export default function FinancePage() {
   const [montantDraft, setMontantDraft] = useState<Record<string, string>>({});
   const [loadingTarifs, setLoadingTarifs] = useState(false);
   const [savingNiveauId, setSavingNiveauId] = useState<string | null>(null);
+  const [downloadingRecuId, setDownloadingRecuId] = useState<string | null>(null);
 
   const canCollect = hasPermission("payments.collect");
   const canView = canCollect || hasPermission("payments.view");
@@ -177,13 +179,17 @@ export default function FinancePage() {
     }
   }
 
-  async function handleDownloadRecu() {
+  async function handleDownloadRecu(paiement: Paiement) {
     const token = getToken();
-    if (!token || !lastPaiement) return;
+    if (!token) return;
+    setDownloadingRecuId(paiement.id);
+    setError(null);
     try {
-      await downloadRecuPdf(token, lastPaiement.id, `${lastPaiement.numero_recu}.pdf`);
+      await downloadRecuPdf(token, paiement.id, `${paiement.numero_recu}.pdf`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur PDF");
+    } finally {
+      setDownloadingRecuId(null);
     }
   }
 
@@ -359,36 +365,16 @@ export default function FinancePage() {
             )}
 
             {lastPaiement && (
-              <div className="aw-card overflow-hidden p-0">
-                <div className="border-b border-[var(--color-cloud)] bg-[var(--color-obsidian)] px-5 py-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Paiement enregistré</p>
-                  <p className="mt-1 font-mono text-sm text-white">{lastPaiement.numero_recu}</p>
-                </div>
-                <div className="space-y-4 px-5 py-5">
-                  <div>
-                    <p className="text-xs text-zinc-500">Montant encaissé</p>
-                    <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
-                      {fmt(Number(lastPaiement.montant))}
-                    </p>
-                  </div>
-                  <dl className="grid gap-2 text-sm">
-                    <div className="flex justify-between gap-4 border-b border-zinc-100 py-2">
-                      <dt className="text-zinc-500">Élève</dt>
-                      <dd className="text-right font-medium text-zinc-900">
-                        {lastPaiement.eleve_prenoms} {lastPaiement.eleve_nom}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4 py-1">
-                      <dt className="text-zinc-500">Mode</dt>
-                      <dd className="text-zinc-800">
-                        {MODES.find((m) => m.value === lastPaiement.mode_paiement)?.label ?? lastPaiement.mode_paiement}
-                      </dd>
-                    </div>
-                  </dl>
-                  <button type="button" onClick={handleDownloadRecu} className="aw-btn-primary w-full">
-                    Télécharger le reçu PDF
-                  </button>
-                </div>
+              <div>
+                <p className="mb-3 text-sm font-medium text-emerald-800">Paiement enregistré — reçu disponible</p>
+                <RecuPaiementCard
+                  paiement={lastPaiement}
+                  anneeLibelle={anneeLibelle}
+                  classeNom={classes.find((c) => c.id === classeId)?.nom}
+                  resteApresPaiement={situation ? Number(situation.total_restant) : null}
+                  onDownloadPdf={() => handleDownloadRecu(lastPaiement)}
+                  downloading={downloadingRecuId === lastPaiement.id}
+                />
               </div>
             )}
           </div>
@@ -558,6 +544,7 @@ export default function FinancePage() {
                       <th className="px-4 py-3 text-left">Objet</th>
                       <th className="px-4 py-3 text-left">Montant</th>
                       <th className="px-4 py-3 text-left">Mode</th>
+                      <th className="px-4 py-3 text-left">Reçu</th>
                       {canCancel && <th className="px-4 py-3 text-left"></th>}
                     </tr>
                   </thead>
@@ -569,6 +556,18 @@ export default function FinancePage() {
                         <td className="px-4 py-2">{p.type_frais_libelle}</td>
                         <td className="px-4 py-2">{fmt(Number(p.montant))}</td>
                         <td className="px-4 py-2">{MODES.find((m) => m.value === p.mode_paiement)?.label ?? p.mode_paiement}</td>
+                        <td className="px-4 py-2">
+                          {p.statut === "valide" && (
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-emerald-700 hover:underline disabled:opacity-50"
+                              disabled={downloadingRecuId === p.id}
+                              onClick={() => handleDownloadRecu(p)}
+                            >
+                              {downloadingRecuId === p.id ? "…" : "PDF"}
+                            </button>
+                          )}
+                        </td>
                         {canCancel && (
                           <td className="px-4 py-2">
                             {p.statut === "valide" && (
