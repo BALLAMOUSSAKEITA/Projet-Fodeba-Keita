@@ -1,27 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { listClasseEffectifs } from "@/lib/api/classes";
 import { getStatsEffectifs } from "@/lib/api/eleves";
 import {
   createClasse,
   deleteClasse,
-  getAnneeActive,
+  listAnnees,
   listNiveaux,
   updateClasse,
 } from "@/lib/api/parametrage";
+import { anneesForClassesSelect, defaultAnneeClasseId } from "@/lib/anneesScolaires";
 import { ApiError } from "@/lib/api/client";
 import { canManageClasses, getToken } from "@/lib/auth/session";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { CrudActions } from "@/components/ui/CrudActions";
+import { IconActionButton, IconActionLink } from "@/components/ui/IconAction";
 import type { ClasseEffectif, EffectifStats } from "@/types/classe";
-import type { Niveau } from "@/types/parametrage";
+import type { AnneeScolaire, Niveau } from "@/types/parametrage";
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState<ClasseEffectif[]>([]);
   const [stats, setStats] = useState<EffectifStats | null>(null);
   const [niveaux, setNiveaux] = useState<Niveau[]>([]);
+  const [anneesOptions, setAnneesOptions] = useState<AnneeScolaire[]>([]);
   const [anneeId, setAnneeId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,21 +39,33 @@ export default function ClassesPage() {
 
   const canManage = canManageClasses();
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     const token = getToken();
     if (!token) return;
+    listAnnees(token)
+      .then((all) => {
+        const options = anneesForClassesSelect(all);
+        setAnneesOptions(options.length > 0 ? options : all);
+        setAnneeId((current) => current || defaultAnneeClasseId(all));
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : "Impossible de charger les années scolaires");
+      });
+  }, []);
+
+  const load = useCallback(async () => {
+    const token = getToken();
+    if (!token || !anneeId) return;
     setLoading(true);
     setError(null);
     try {
-      const [effectifs, effectifStats, annee, niveauxData] = await Promise.all([
-        listClasseEffectifs(token),
-        getStatsEffectifs(token),
-        getAnneeActive(token),
+      const [effectifs, effectifStats, niveauxData] = await Promise.all([
+        listClasseEffectifs(token, anneeId),
+        getStatsEffectifs(token, anneeId),
         listNiveaux(token),
       ]);
       setClasses(effectifs);
       setStats(effectifStats);
-      setAnneeId(annee.id);
       setNiveaux(niveauxData);
       setForm((f) => ({
         ...f,
@@ -63,11 +76,13 @@ export default function ClassesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [anneeId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const anneeLibelle = anneesOptions.find((a) => a.id === anneeId)?.libelle ?? "";
 
   function openCreate() {
     setEditingId(null);
@@ -139,10 +154,30 @@ export default function ClassesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Classes</h2>
-          <p className="text-sm text-slate-500">Effectifs par classe — année scolaire active</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Classes</h2>
+            <p className="text-sm text-slate-500">
+              Effectifs par classe{anneeLibelle ? ` — ${anneeLibelle}` : ""}
+            </p>
+          </div>
+          {anneesOptions.length > 0 && (
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Année scolaire</span>
+              <select
+                value={anneeId}
+                onChange={(e) => setAnneeId(e.target.value)}
+                className="mt-1 block min-w-[12rem] rounded-lg border border-slate-300 bg-white px-3 py-2"
+              >
+                {anneesOptions.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.libelle}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
         {canManage && (
           <button
@@ -289,15 +324,23 @@ export default function ClassesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Link href={`/dashboard/classes/${c.id}`} className="text-emerald-700 hover:underline">
-                        Voir
-                      </Link>
+                    <div className="flex items-center gap-1">
+                      <IconActionLink href={`/dashboard/classes/${c.id}`} label="Voir la classe" />
                       {canManage && (
-                        <CrudActions
-                          onEdit={() => openEdit(c)}
-                          onDelete={() => setDeleteTarget({ id: c.id, nom: c.nom })}
-                        />
+                        <>
+                          <IconActionButton
+                            label="Modifier la classe"
+                            variant="neutral"
+                            icon="edit"
+                            onClick={() => openEdit(c)}
+                          />
+                          <IconActionButton
+                            label="Supprimer la classe"
+                            variant="danger"
+                            icon="trash"
+                            onClick={() => setDeleteTarget({ id: c.id, nom: c.nom })}
+                          />
+                        </>
                       )}
                     </div>
                   </td>

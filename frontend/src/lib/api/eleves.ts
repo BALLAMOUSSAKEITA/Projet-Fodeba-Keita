@@ -123,8 +123,9 @@ export async function getHistorique(token: string, id: string) {
   return apiFetch<HistoriqueScolaire>(`/api/v1/eleves/${id}/historique`, {}, token);
 }
 
-export async function getStatsEffectifs(token: string) {
-  return apiFetch<EffectifStats>("/api/v1/eleves/statistiques/effectifs", {}, token);
+export async function getStatsEffectifs(token: string, anneeScolaireId?: string) {
+  const q = anneeScolaireId ? `?annee_scolaire_id=${anneeScolaireId}` : "";
+  return apiFetch<EffectifStats>(`/api/v1/eleves/statistiques/effectifs${q}`, {}, token);
 }
 
 export async function downloadAttestationScolarite(token: string, id: string, matricule: string) {

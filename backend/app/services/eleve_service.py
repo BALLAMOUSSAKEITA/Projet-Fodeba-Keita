@@ -458,8 +458,13 @@ async def get_historique(db: AsyncSession, eleve_id: UUID) -> HistoriqueScolaire
     )
 
 
-async def get_stats_effectifs(db: AsyncSession) -> EffectifStatsResponse:
-    annee = await parametrage_service.get_annee_active(db)
+async def get_stats_effectifs(
+    db: AsyncSession, annee_scolaire_id: UUID | None = None
+) -> EffectifStatsResponse:
+    if annee_scolaire_id:
+        annee = await parametrage_service._get_annee(db, annee_scolaire_id)
+    else:
+        annee = await parametrage_service.get_annee_active(db)
     if annee is None:
         return EffectifStatsResponse(
             total_eleves=0, total_garcons=0, total_filles=0, par_niveau=[], sans_classe=0

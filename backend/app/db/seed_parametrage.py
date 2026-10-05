@@ -103,15 +103,27 @@ async def seed_parametrage(db: AsyncSession) -> None:
     )
     db.add(etab)
 
-    annee = AnneeScolaire(
-        libelle="Année scolaire active",
-        date_debut=date(2026, 9, 15),
-        date_fin=date(2027, 7, 15),
-        statut=StatutAnneeScolaire.ACTIVE.value,
-        is_active=True,
-    )
-    db.add(annee)
+    annees_sco = [
+        ("2026-2027", date(2026, 9, 15), date(2027, 7, 15), True),
+        ("2027-2028", date(2027, 9, 15), date(2028, 7, 15), False),
+        ("2028-2029", date(2028, 9, 15), date(2029, 7, 15), False),
+        ("2029-2030", date(2029, 9, 15), date(2030, 7, 15), False),
+    ]
+    annee: AnneeScolaire | None = None
+    for libelle, debut, fin, active in annees_sco:
+        row = AnneeScolaire(
+            libelle=libelle,
+            date_debut=debut,
+            date_fin=fin,
+            statut=StatutAnneeScolaire.ACTIVE.value if active else StatutAnneeScolaire.PLANIFIEE.value,
+            is_active=active,
+        )
+        db.add(row)
+        if active:
+            annee = row
     await db.flush()
+    if annee is None:
+        raise RuntimeError("Aucune année scolaire active dans le seed")
 
     bareme = Bareme(
         annee_scolaire_id=annee.id,

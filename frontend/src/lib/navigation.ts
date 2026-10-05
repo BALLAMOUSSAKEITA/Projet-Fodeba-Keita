@@ -37,8 +37,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "Scolarité",
     items: [
-      { href: "/dashboard/eleves", label: "Élèves", icon: "students", permission: "students.view" },
       { href: "/dashboard/classes", label: "Classes", icon: "classes", permission: "students.view" },
+      { href: "/dashboard/eleves", label: "Élèves", icon: "students", permission: "students.view" },
       { href: "/dashboard/notes", label: "Notes", icon: "grades", permission: "grades.modify" },
       {
         href: "/dashboard/bulletins",

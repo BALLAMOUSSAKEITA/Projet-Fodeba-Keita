@@ -14,6 +14,7 @@ import {
 import { ApiError } from "@/lib/api/client";
 import { canManageClasses, getToken } from "@/lib/auth/session";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { IconActionButton } from "@/components/ui/IconAction";
 import type { ClasseElevesResponse } from "@/types/classe";
 import type { Niveau } from "@/types/parametrage";
 
@@ -144,20 +145,18 @@ export default function ClasseDetailPage() {
         <div className="flex flex-wrap gap-2">
           {canManage && (
             <>
-              <button
-                type="button"
+              <IconActionButton
+                label={editing ? "Annuler la modification" : "Modifier la classe"}
+                variant="neutral"
+                icon="edit"
                 onClick={() => setEditing(!editing)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50"
-              >
-                {editing ? "Annuler" : "Modifier"}
-              </button>
-              <button
-                type="button"
+              />
+              <IconActionButton
+                label="Supprimer la classe"
+                variant="danger"
+                icon="trash"
                 onClick={() => setDeleteOpen(true)}
-                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-              >
-                Supprimer
-              </button>
+              />
             </>
           )}
           <button

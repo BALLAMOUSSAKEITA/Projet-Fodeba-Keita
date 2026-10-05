@@ -1,8 +1,9 @@
 import type { ClasseEffectif, ClasseElevesResponse } from "@/types/classe";
 import { apiDownload, apiFetch } from "./client";
 
-export async function listClasseEffectifs(token: string) {
-  return apiFetch<ClasseEffectif[]>("/api/v1/classes/effectifs", {}, token);
+export async function listClasseEffectifs(token: string, anneeScolaireId?: string) {
+  const q = anneeScolaireId ? `?annee_scolaire_id=${anneeScolaireId}` : "";
+  return apiFetch<ClasseEffectif[]>(`/api/v1/classes/effectifs${q}`, {}, token);
 }
 
 export async function getClasseEleves(token: string, classeId: string) {

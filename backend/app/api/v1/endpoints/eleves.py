@@ -32,10 +32,11 @@ READ_PERMISSIONS = ("students.view", "students.enroll", "reports.view_pedagogica
 
 @router.get("/statistiques/effectifs", response_model=EffectifStatsResponse)
 async def stats_effectifs(
+    annee_scolaire_id: UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_any_permission(*READ_PERMISSIONS)),
 ):
-    return await eleve_service.get_stats_effectifs(db)
+    return await eleve_service.get_stats_effectifs(db, annee_scolaire_id)
 
 
 @router.post("/transfert-entrant", response_model=EleveResponse, status_code=status.HTTP_201_CREATED)

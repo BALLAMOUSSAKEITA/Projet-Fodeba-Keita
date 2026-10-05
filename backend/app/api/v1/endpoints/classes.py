@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,10 +17,11 @@ READ_PERMISSIONS = ("students.view", "students.enroll", "reports.view_pedagogica
 
 @router.get("/effectifs", response_model=list[ClasseEffectifResponse])
 async def get_effectifs(
+    annee_scolaire_id: UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_any_permission(*READ_PERMISSIONS)),
 ):
-    return await classe_service.get_classe_effectifs(db)
+    return await classe_service.get_classe_effectifs(db, annee_scolaire_id)
 
 
 @router.get("/{classe_id}/eleves", response_model=ClasseElevesResponse)
