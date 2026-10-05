@@ -83,7 +83,7 @@ export default function ElevesPage() {
           placeholder="Rechercher (nom, prénom, matricule)..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="min-w-[220px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="min-w-0 w-full flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm sm:min-w-[12rem]"
         />
         <select
           value={sexe}
@@ -106,7 +106,7 @@ export default function ElevesPage() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-600">
             <tr>

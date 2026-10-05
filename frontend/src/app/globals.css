@@ -416,6 +416,50 @@ button.bg-emerald-700:hover {
 .aw-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 .aw-page { margin-inline: auto; max-width: 1200px; padding-inline: 24px; width: 100%; }
 
+/* Titres et cartes dashboard — mobile first */
+.dashboard-main h2.text-2xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+@media (min-width: 640px) {
+  .dashboard-main h2.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+.dashboard-main .rounded-xl.border.bg-white.p-6.shadow-sm {
+  padding: 1rem;
+}
+@media (min-width: 640px) {
+  .dashboard-main .rounded-xl.border.bg-white.p-6.shadow-sm {
+    padding: 1.5rem;
+  }
+}
+
+/* Mobile: scroll horizontal fluide pour les tableaux larges */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.table-responsive > table {
+  min-width: 36rem;
+}
+@media (min-width: 1024px) {
+  .table-responsive > table {
+    min-width: 100%;
+  }
+}
+
+/* Évite le zoom automatique sur les champs (iOS) */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 @keyframes fd-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

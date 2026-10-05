@@ -153,7 +153,7 @@ export default function RapportsPage() {
               <p className="text-2xl font-bold text-pink-700">{effectifs.stats.total_filles}</p>
             </div>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50">
                 <tr>

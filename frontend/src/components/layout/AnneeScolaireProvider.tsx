@@ -45,7 +45,7 @@ export function AnneeScolaireProvider({ children }: { children: ReactNode }) {
         setAnnees(opts);
         const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
         const fromStore = stored ? opts.find((a) => a.id === stored) : undefined;
-        const id = fromStore?.id ?? defaultAnneeClasseId(all);
+        const id = fromStore?.id ?? defaultAnneeClasseId(opts.length ? opts : all);
         setAnneeIdState(id);
         if (id && typeof window !== "undefined") {
           localStorage.setItem(STORAGE_KEY, id);

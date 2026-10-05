@@ -182,7 +182,7 @@ export default function ComptabilitePage() {
           </form>
         )}
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-1">
+        <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-1">
           <h3 className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">
             Dépenses enregistrées
           </h3>

@@ -382,7 +382,7 @@ export default function FinancePage() {
       )}
 
       {tab === "impayes" && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-wrap gap-3 border-b border-slate-100 px-4 py-3">
             <select
               value={classeId}
@@ -535,7 +535,7 @@ export default function FinancePage() {
                   </ul>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50">
                     <tr>

@@ -103,7 +103,7 @@ export default function EmploiDuTempsPage() {
       {loading ? (
         <p className="text-sm text-slate-500">Chargement...</p>
       ) : grille ? (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-sm">
             <thead className="bg-emerald-700 text-white">
               <tr>

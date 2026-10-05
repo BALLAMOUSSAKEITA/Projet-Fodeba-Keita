@@ -71,11 +71,11 @@ export default function LoginPage() {
         <p className="text-xs text-slate-500">Conakry, Guinée</p>
       </div>
 
-      <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-12">
+      <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
-          <LogoLight className="mb-8 lg:hidden" />
+          <LogoLight className="mb-6 lg:hidden sm:mb-8" />
 
-          <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
             <h2 className="text-2xl font-bold text-slate-900">Connexion</h2>
             <p className="mt-2 text-sm text-slate-500">Identifiants fournis par l&apos;administration</p>
 

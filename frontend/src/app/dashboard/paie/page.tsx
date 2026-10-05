@@ -207,7 +207,7 @@ export default function PaiePage() {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Mes bulletins de paie</h2>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50">
               <tr>
@@ -272,7 +272,7 @@ export default function PaiePage() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="table-responsive rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
