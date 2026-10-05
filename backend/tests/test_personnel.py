@@ -50,6 +50,53 @@ async def test_create_non_enseignant(client, admin_token):
 
 
 @pytest.mark.asyncio
+async def test_deactivate_and_delete_personnel(client, admin_token, teacher_token):
+    create = await client.post(
+        "/api/v1/personnel",
+        headers={"Authorization": f"Bearer {admin_token}"},
+        json={
+            "nom": "DeleteMe",
+            "prenoms": "Test",
+            "sexe": "M",
+            "telephone": "+224621999001",
+            "categorie": "non_enseignant",
+            "fonction": "Test",
+        },
+    )
+    pid = create.json()["id"]
+
+    deactivated = await client.delete(
+        f"/api/v1/personnel/{pid}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert deactivated.status_code == 200
+
+    detail = await client.get(
+        f"/api/v1/personnel/{pid}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert detail.json()["statut"] == "inactif"
+
+    forbidden = await client.delete(
+        f"/api/v1/personnel/{pid}/permanent",
+        headers={"Authorization": f"Bearer {teacher_token}"},
+    )
+    assert forbidden.status_code == 403
+
+    deleted = await client.delete(
+        f"/api/v1/personnel/{pid}/permanent",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert deleted.status_code == 200
+
+    missing = await client.get(
+        f"/api/v1/personnel/{pid}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_add_diplome_and_contrat(client, admin_token):
     create = await client.post(
         "/api/v1/personnel",

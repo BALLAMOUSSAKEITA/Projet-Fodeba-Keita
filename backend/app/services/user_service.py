@@ -1,11 +1,13 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.security import hash_password
+from app.models.communication import Annonce, HistoriqueCommunication
+from app.models.notes import ValidationPeriode
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -114,3 +116,45 @@ async def deactivate_user(db: AsyncSession, user_id: UUID) -> User:
     user.is_active = False
     await db.flush()
     return user
+
+
+async def delete_user_permanent(db: AsyncSession, user_id: UUID, actor_id: UUID) -> None:
+    if user_id == actor_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vous ne pouvez pas supprimer votre propre compte",
+        )
+
+    user = await get_user_by_id(db, user_id)
+
+    if user.role.code == "super_admin":
+        super_count = (
+            await db.execute(
+                select(func.count())
+                .select_from(User)
+                .join(Role, User.role_id == Role.id)
+                .where(Role.code == "super_admin")
+            )
+        ).scalar_one()
+        if super_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Impossible de supprimer le dernier super administrateur",
+            )
+
+    await db.execute(
+        sql_update(ValidationPeriode)
+        .where(ValidationPeriode.valide_par_id == user_id)
+        .values(valide_par_id=None)
+    )
+    await db.execute(
+        sql_update(Annonce).where(Annonce.auteur_id == user_id).values(auteur_id=None)
+    )
+    await db.execute(
+        sql_update(HistoriqueCommunication)
+        .where(HistoriqueCommunication.envoye_par_id == user_id)
+        .values(envoye_par_id=None)
+    )
+
+    await db.delete(user)
+    await db.flush()

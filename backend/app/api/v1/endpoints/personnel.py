@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import require_any_permission, require_permission
+from app.core.deps import require_any_permission, require_permission, require_super_admin
 from app.models.user import User
+from app.schemas.common import MessageResponse
 from app.schemas.personnel import (
     AffectationCreate,
     CongeCreate,
@@ -172,3 +173,23 @@ async def update_conge(
     _: User = Depends(require_permission("personnel.manage")),
 ):
     return await personnel_service.update_conge(db, personnel_id, conge_id, data)
+
+
+@router.delete("/{personnel_id}", response_model=MessageResponse)
+async def deactivate_personnel(
+    personnel_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("personnel.manage")),
+) -> MessageResponse:
+    await personnel_service.deactivate_personnel(db, personnel_id)
+    return MessageResponse(message="Personnel désactivé")
+
+
+@router.delete("/{personnel_id}/permanent", response_model=MessageResponse)
+async def delete_personnel_permanent(
+    personnel_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_super_admin),
+) -> MessageResponse:
+    await personnel_service.delete_personnel_permanent(db, personnel_id)
+    return MessageResponse(message="Personnel supprimé définitivement")

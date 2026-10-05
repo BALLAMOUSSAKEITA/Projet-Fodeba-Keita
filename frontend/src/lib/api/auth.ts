@@ -69,6 +69,10 @@ export async function deactivateUser(token: string, userId: string) {
   return apiFetch<{ message: string }>(`/api/v1/users/${userId}`, { method: "DELETE" }, token);
 }
 
+export async function deleteUserPermanent(token: string, userId: string) {
+  return apiFetch<{ message: string }>(`/api/v1/users/${userId}/permanent`, { method: "DELETE" }, token);
+}
+
 export async function listRoles(token: string): Promise<Role[]> {
   return apiFetch<Role[]>("/api/v1/roles", {}, token);
 }

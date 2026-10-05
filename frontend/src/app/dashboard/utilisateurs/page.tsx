@@ -1,11 +1,12 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { createUser, deactivateUser, listRoles, listUsers, updateUser } from "@/lib/api/auth";
+import { createUser, deactivateUser, deleteUserPermanent, listRoles, listUsers, updateUser } from "@/lib/api/auth";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CrudActions } from "@/components/ui/CrudActions";
+import { IconActionButton } from "@/components/ui/IconAction";
 import { ApiError } from "@/lib/api/client";
-import { getToken, hasPermission } from "@/lib/auth/session";
+import { getToken, getUser, hasPermission, isSuperAdmin } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/auth/session";
 import type { Role, UserAccount } from "@/types/auth";
 
@@ -27,7 +28,10 @@ export default function UsersAdminPage() {
     password: "",
   });
   const [deactivateId, setDeactivateId] = useState<string | null>(null);
+  const [permanentDeleteId, setPermanentDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const currentUserId = getUser()?.id;
+  const superAdmin = isSuperAdmin();
 
   const [form, setForm] = useState({
     email: "",
@@ -310,11 +314,21 @@ export default function UsersAdminPage() {
                   </td>
                   {canManage && (
                     <td className="px-4 py-3">
-                      <CrudActions
-                        onEdit={() => openEdit(user)}
-                        onDelete={user.is_active ? () => setDeactivateId(user.id) : undefined}
-                        deleteLabel="Désactiver"
-                      />
+                      <div className="flex items-center gap-1">
+                        <CrudActions
+                          onEdit={() => openEdit(user)}
+                          onDelete={user.is_active ? () => setDeactivateId(user.id) : undefined}
+                          deleteLabel="Désactiver le compte"
+                        />
+                        {superAdmin && user.id !== currentUserId && (
+                          <IconActionButton
+                            label="Supprimer définitivement"
+                            icon="trash"
+                            variant="danger"
+                            onClick={() => setPermanentDeleteId(user.id)}
+                          />
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -327,7 +341,7 @@ export default function UsersAdminPage() {
       <ConfirmDialog
         open={!!deactivateId}
         title="Désactiver ce compte ?"
-        message="L'utilisateur ne pourra plus se connecter."
+        message="L'utilisateur ne pourra plus se connecter. Le compte reste en base et peut être réactivé."
         confirmLabel="Désactiver"
         danger
         loading={saving}
@@ -339,6 +353,30 @@ export default function UsersAdminPage() {
           try {
             await deactivateUser(token, deactivateId);
             setDeactivateId(null);
+            await loadData();
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!permanentDeleteId}
+        title="Supprimer définitivement cet utilisateur ?"
+        message="Cette action est irréversible : le compte sera effacé de la base. Préférez la désactivation si l'historique doit être conservé."
+        confirmLabel="Supprimer définitivement"
+        danger
+        loading={saving}
+        onCancel={() => setPermanentDeleteId(null)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token || !permanentDeleteId) return;
+          setSaving(true);
+          try {
+            await deleteUserPermanent(token, permanentDeleteId);
+            setPermanentDeleteId(null);
             await loadData();
           } catch (err) {
             setError(err instanceof ApiError ? err.message : "Erreur");

@@ -59,7 +59,7 @@ async def test_rbac_forbidden_for_teacher(client, teacher_token):
 
 
 @pytest.mark.asyncio
-async def test_create_user_as_admin(client, admin_token):
+async def test_create_user_as_admin(client, admin_token, teacher_token):
     roles_response = await client.get(
         "/api/v1/roles",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -81,6 +81,25 @@ async def test_create_user_as_admin(client, admin_token):
     )
     assert response.status_code == 201
     assert response.json()["email"] == "parent.test@fodebakeita.gn"
+    user_id = response.json()["id"]
+
+    forbidden = await client.delete(
+        f"/api/v1/users/{user_id}/permanent",
+        headers={"Authorization": f"Bearer {teacher_token}"},
+    )
+    assert forbidden.status_code == 403
+
+    deleted = await client.delete(
+        f"/api/v1/users/{user_id}/permanent",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert deleted.status_code == 200
+
+    missing = await client.get(
+        f"/api/v1/users/{user_id}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert missing.status_code == 404
 
 
 @pytest.mark.asyncio

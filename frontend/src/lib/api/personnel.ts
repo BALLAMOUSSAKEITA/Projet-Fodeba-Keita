@@ -106,3 +106,11 @@ export async function updateCongeStatut(
     body: JSON.stringify({ statut }),
   }, token);
 }
+
+export async function deactivatePersonnel(token: string, id: string) {
+  return apiFetch<{ message: string }>(`/api/v1/personnel/${id}`, { method: "DELETE" }, token);
+}
+
+export async function deletePersonnelPermanent(token: string, id: string) {
+  return apiFetch<{ message: string }>(`/api/v1/personnel/${id}/permanent`, { method: "DELETE" }, token);
+}

@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { IconActionLink } from "@/components/ui/IconAction";
-import { listPersonnel } from "@/lib/api/personnel";
+import { useRouter } from "next/navigation";
+import { deactivatePersonnel, deletePersonnelPermanent, listPersonnel } from "@/lib/api/personnel";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { CrudActions } from "@/components/ui/CrudActions";
+import { IconActionButton, IconActionLink } from "@/components/ui/IconAction";
 import { ApiError } from "@/lib/api/client";
-import { getToken, hasPermission } from "@/lib/auth/session";
+import { getToken, hasPermission, isSuperAdmin } from "@/lib/auth/session";
 import type { PersonnelListItem } from "@/types/personnel";
 
 const CATEGORIE_LABEL: Record<string, string> = {
@@ -14,6 +17,7 @@ const CATEGORIE_LABEL: Record<string, string> = {
 };
 
 export default function PersonnelPage() {
+  const router = useRouter();
   const [items, setItems] = useState<PersonnelListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
@@ -21,6 +25,10 @@ export default function PersonnelPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const canManage = hasPermission("personnel.manage");
+  const superAdmin = isSuperAdmin();
+  const [deactivateId, setDeactivateId] = useState<string | null>(null);
+  const [permanentDeleteId, setPermanentDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     const token = getToken();
@@ -117,7 +125,27 @@ export default function PersonnelPage() {
                   <td className="px-4 py-3">{p.fonction ?? p.specialite ?? "—"}</td>
                   <td className="px-4 py-3">{p.telephone}</td>
                   <td className="px-4 py-3">
-                    <IconActionLink href={`/dashboard/personnel/${p.id}`} label="Voir la fiche personnel" />
+                    <div className="flex items-center gap-1">
+                      <IconActionLink href={`/dashboard/personnel/${p.id}`} label="Voir la fiche personnel" />
+                      {canManage && (
+                        <>
+                          <CrudActions
+                            onEdit={() => router.push(`/dashboard/personnel/${p.id}`)}
+                            editLabel="Modifier la fiche"
+                            onDelete={p.statut === "actif" ? () => setDeactivateId(p.id) : undefined}
+                            deleteLabel="Désactiver"
+                          />
+                          {superAdmin && (
+                            <IconActionButton
+                              label="Supprimer définitivement"
+                              icon="trash"
+                              variant="danger"
+                              onClick={() => setPermanentDeleteId(p.id)}
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -125,6 +153,54 @@ export default function PersonnelPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!deactivateId}
+        title="Désactiver ce membre du personnel ?"
+        message="Il n'apparaîtra plus dans la liste des actifs. La fiche reste en base."
+        confirmLabel="Désactiver"
+        danger
+        loading={saving}
+        onCancel={() => setDeactivateId(null)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token || !deactivateId) return;
+          setSaving(true);
+          try {
+            await deactivatePersonnel(token, deactivateId);
+            setDeactivateId(null);
+            await load();
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!permanentDeleteId}
+        title="Supprimer définitivement ce personnel ?"
+        message="Action irréversible : fiche, contrats, affectations et données liées seront effacés."
+        confirmLabel="Supprimer définitivement"
+        danger
+        loading={saving}
+        onCancel={() => setPermanentDeleteId(null)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token || !permanentDeleteId) return;
+          setSaving(true);
+          try {
+            await deletePersonnelPermanent(token, permanentDeleteId);
+            setPermanentDeleteId(null);
+            await load();
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
     </div>
   );
 }

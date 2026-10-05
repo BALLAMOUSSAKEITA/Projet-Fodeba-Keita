@@ -62,6 +62,10 @@ export function canManageClasses(): boolean {
   return hasPermission("settings.manage") || hasPermission("students.enroll");
 }
 
+export function isSuperAdmin(): boolean {
+  return getUser()?.role === "super_admin";
+}
+
 export function clearSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);

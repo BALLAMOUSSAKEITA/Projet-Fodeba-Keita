@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_permission
+from app.core.deps import get_current_user, require_permission, require_super_admin
 from app.models.user import User
 from app.schemas.common import MessageResponse
 from app.schemas.user import UserCreate, UserListResponse, UserResponse, UserUpdate
@@ -72,3 +72,13 @@ async def deactivate_user(
         )
     await user_service.deactivate_user(db, user_id)
     return MessageResponse(message="Utilisateur désactivé")
+
+
+@router.delete("/{user_id}/permanent", response_model=MessageResponse)
+async def delete_user_permanent(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_super_admin),
+) -> MessageResponse:
+    await user_service.delete_user_permanent(db, user_id, current_user.id)
+    return MessageResponse(message="Utilisateur supprimé définitivement")

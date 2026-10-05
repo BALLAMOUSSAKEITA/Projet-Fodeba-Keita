@@ -78,3 +78,12 @@ def require_any_permission(*permission_codes: str) -> Callable:
         return current_user
 
     return permission_checker
+
+
+async def require_super_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role.code != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Réservé au super administrateur",
+        )
+    return current_user

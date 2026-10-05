@@ -1,10 +1,11 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select, update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.emploi_du_temps import SeanceCours
 from app.models.parametrage import Classe
 from app.models.personnel import (
     AffectationPedagogique,
@@ -13,6 +14,7 @@ from app.models.personnel import (
     Contrat,
     Diplome,
     Personnel,
+    StatutPersonnel,
 )
 from app.schemas.personnel import (
     AffectationCreate,
@@ -353,3 +355,24 @@ async def update_conge(
         )
     await db.commit()
     return await get_personnel(db, personnel_id)
+
+
+async def deactivate_personnel(db: AsyncSession, personnel_id: UUID) -> Personnel:
+    personnel = await get_personnel(db, personnel_id)
+    personnel.statut = StatutPersonnel.INACTIF.value
+    await db.commit()
+    return await get_personnel(db, personnel_id)
+
+
+async def delete_personnel_permanent(db: AsyncSession, personnel_id: UUID) -> None:
+    await get_personnel(db, personnel_id)
+
+    await db.execute(
+        sql_update(Classe).where(Classe.titulaire_id == personnel_id).values(titulaire_id=None)
+    )
+    await db.execute(delete(SeanceCours).where(SeanceCours.personnel_id == personnel_id))
+    personnel = await db.get(Personnel, personnel_id)
+    if personnel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Personnel introuvable")
+    await db.delete(personnel)
+    await db.commit()

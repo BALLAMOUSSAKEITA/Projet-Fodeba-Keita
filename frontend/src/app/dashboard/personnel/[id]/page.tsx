@@ -2,21 +2,25 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   addAffectation,
   addConge,
   addContrat,
   addDiplome,
+  deactivatePersonnel,
+  deletePersonnelPermanent,
   getPersonnel,
   setTitulaire,
   updateCongeStatut,
   updatePersonnel,
 } from "@/lib/api/personnel";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CrudActions } from "@/components/ui/CrudActions";
+import { IconActionButton } from "@/components/ui/IconAction";
 import { listClasses, listMatieres } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
-import { getToken, hasPermission } from "@/lib/auth/session";
+import { getToken, hasPermission, isSuperAdmin } from "@/lib/auth/session";
 import type { Personnel } from "@/types/personnel";
 import type { Classe, Matiere } from "@/types/parametrage";
 
@@ -35,6 +39,7 @@ const TYPE_CONGE: Record<string, string> = {
 
 export default function PersonnelDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [personnel, setPersonnel] = useState<Personnel | null>(null);
   const [classes, setClasses] = useState<Classe[]>([]);
@@ -48,6 +53,10 @@ export default function PersonnelDetailPage() {
     fonction: "",
   });
   const canManage = hasPermission("personnel.manage");
+  const superAdmin = isSuperAdmin();
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const load = useCallback(async () => {
     const token = getToken();
@@ -305,6 +314,86 @@ export default function PersonnelDetailPage() {
           }}
         />
       </section>
+
+      {canManage && personnel.statut === "actif" && (
+        <section className="rounded-xl border border-amber-100 bg-amber-50/50 p-6">
+          <h3 className="font-semibold text-amber-900">Désactivation</h3>
+          <p className="mt-1 text-sm text-amber-800">
+            Le membre reste en base mais n&apos;est plus considéré comme actif.
+          </p>
+          <div className="mt-3">
+            <IconActionButton
+              label="Désactiver"
+              icon="trash"
+              variant="neutral"
+              onClick={() => setConfirmDeactivate(true)}
+            />
+          </div>
+        </section>
+      )}
+
+      {superAdmin && (
+        <section className="rounded-xl border border-red-100 bg-red-50/50 p-6">
+          <h3 className="font-semibold text-red-900">Zone sensible</h3>
+          <p className="mt-1 text-sm text-red-800">
+            Suppression définitive de la fiche et des données associées (contrats, affectations, séances EDT, etc.).
+          </p>
+          <div className="mt-3">
+            <IconActionButton
+              label="Supprimer définitivement"
+              icon="trash"
+              variant="danger"
+              onClick={() => setConfirmDelete(true)}
+            />
+          </div>
+        </section>
+      )}
+
+      <ConfirmDialog
+        open={confirmDeactivate}
+        title="Désactiver ce membre du personnel ?"
+        message="Il n'apparaîtra plus dans la liste des actifs."
+        confirmLabel="Désactiver"
+        danger
+        loading={actionLoading}
+        onCancel={() => setConfirmDeactivate(false)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token) return;
+          setActionLoading(true);
+          try {
+            await deactivatePersonnel(token, id);
+            router.push("/dashboard/personnel");
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setActionLoading(false);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Supprimer définitivement ce personnel ?"
+        message="Cette action est irréversible."
+        confirmLabel="Supprimer définitivement"
+        danger
+        loading={actionLoading}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={async () => {
+          const token = getToken();
+          if (!token) return;
+          setActionLoading(true);
+          try {
+            await deletePersonnelPermanent(token, id);
+            router.push("/dashboard/personnel");
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Erreur");
+          } finally {
+            setActionLoading(false);
+          }
+        }}
+      />
     </div>
   );
 }

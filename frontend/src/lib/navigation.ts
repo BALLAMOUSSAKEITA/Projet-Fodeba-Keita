@@ -75,7 +75,13 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/dashboard/utilisateurs", label: "Utilisateurs", icon: "users", permission: "users.manage" },
       { href: "/dashboard/personnel", label: "Personnel", icon: "staff", permission: "personnel.view" },
-      { href: "/dashboard/parametres", label: "Paramètres", icon: "settings", permission: "settings.view" },
+      {
+        href: "/dashboard/parametres",
+        label: "Paramètres",
+        icon: "settings",
+        permission: "settings.view",
+        menuHidden: true,
+      },
     ],
   },
   {
