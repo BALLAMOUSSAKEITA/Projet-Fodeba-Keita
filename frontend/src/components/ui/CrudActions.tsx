@@ -1,5 +1,7 @@
 "use client";
 
+import { IconActionButton } from "@/components/ui/IconAction";
+
 type CrudActionsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
@@ -18,26 +20,24 @@ export function CrudActions({
   if (!onEdit && !onDelete) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex items-center gap-1">
       {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
+        <IconActionButton
+          label={editLabel}
+          variant="neutral"
+          icon="edit"
           disabled={disabled}
-          className="text-sm font-medium text-teal-700 hover:underline disabled:opacity-50"
-        >
-          {editLabel}
-        </button>
+          onClick={onEdit}
+        />
       )}
       {onDelete && (
-        <button
-          type="button"
-          onClick={onDelete}
+        <IconActionButton
+          label={deleteLabel}
+          variant="danger"
+          icon="trash"
           disabled={disabled}
-          className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
-        >
-          {deleteLabel}
-        </button>
+          onClick={onDelete}
+        />
       )}
     </div>
   );

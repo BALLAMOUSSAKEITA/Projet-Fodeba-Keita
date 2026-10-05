@@ -4,17 +4,12 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { downloadListeClassePdf, getClasseEleves } from "@/lib/api/classes";
-import {
-  deleteClasse,
-  getAnneeActive,
-  listClasses,
-  listNiveaux,
-  updateClasse,
-} from "@/lib/api/parametrage";
+import { deleteClasse, listClasses, listNiveaux, updateClasse } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { canManageClasses, getToken } from "@/lib/auth/session";
+import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { IconActionButton } from "@/components/ui/IconAction";
+import { IconActionButton, IconActionLink } from "@/components/ui/IconAction";
 import type { ClasseElevesResponse } from "@/types/classe";
 import type { Niveau } from "@/types/parametrage";
 
@@ -32,18 +27,19 @@ export default function ClasseDetailPage() {
   const [form, setForm] = useState({ nom: "", salle: "", capacite_max: "40", niveau_id: "" });
 
   const canManage = canManageClasses();
+  const { anneeId } = useAnneeScolaire();
 
   const load = useCallback(async () => {
     const token = getToken();
-    if (!token) return;
+    if (!token || !anneeId) return;
     try {
       const classeData = await getClasseEleves(token, id);
       setData(classeData);
 
       if (canManageClasses()) {
-        const [niveauxData, annee] = await Promise.all([listNiveaux(token), getAnneeActive(token)]);
+        const niveauxData = await listNiveaux(token);
         setNiveaux(niveauxData);
-        const classes = await listClasses(token, annee.id);
+        const classes = await listClasses(token, anneeId);
         const full = classes.find((c) => c.id === id);
         setForm({
           nom: full?.nom ?? classeData.classe.nom,
@@ -55,7 +51,7 @@ export default function ClasseDetailPage() {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Classe introuvable");
     }
-  }, [id]);
+  }, [id, anneeId]);
 
   useEffect(() => {
     load();
@@ -264,9 +260,7 @@ export default function ClasseDetailPage() {
                   <td className="px-4 py-3">{e.sexe === "M" ? "G" : "F"}</td>
                   <td className="px-4 py-3">{e.date_naissance}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/dashboard/eleves/${e.id}`} className="text-emerald-700 hover:underline">
-                      Fiche
-                    </Link>
+                    <IconActionLink href={`/dashboard/eleves/${e.id}`} label="Voir la fiche élève" />
                   </td>
                 </tr>
               ))

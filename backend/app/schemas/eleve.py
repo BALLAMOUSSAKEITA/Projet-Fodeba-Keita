@@ -84,6 +84,7 @@ class EleveCreate(BaseModel):
     groupe_sanguin: str | None = None
     allergies: str | None = None
     niveau_id: UUID
+    classe_id: UUID
     tuteurs: list[TuteurCreate] = Field(..., min_length=1)
 
 

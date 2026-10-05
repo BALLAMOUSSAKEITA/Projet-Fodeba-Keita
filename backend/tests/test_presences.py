@@ -19,15 +19,11 @@ async def _get_classe_eleve(client, admin_token):
             "sexe": "M",
             "date_naissance": "2015-03-01",
             "niveau_id": classe["niveau_id"],
+            "classe_id": classe["id"],
             "tuteurs": [{"type": "pere", "nom": "T", "prenoms": "P", "telephone": "+224621000088"}],
         },
     )).json()
 
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classe["id"]},
-    )
     return classe, eleve
 
 

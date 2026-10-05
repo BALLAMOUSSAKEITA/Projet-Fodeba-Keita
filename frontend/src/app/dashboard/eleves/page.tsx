@@ -6,6 +6,7 @@ import { listEleves } from "@/lib/api/eleves";
 import { listNiveaux } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
+import { IconActionLink } from "@/components/ui/IconAction";
 import type { EleveListItem } from "@/types/eleve";
 import type { Niveau } from "@/types/parametrage";
 
@@ -16,7 +17,6 @@ export default function ElevesPage() {
   const [search, setSearch] = useState("");
   const [sexe, setSexe] = useState("");
   const [niveauId, setNiveauId] = useState("");
-  const [statut, setStatut] = useState("actif");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +32,6 @@ export default function ElevesPage() {
           search: search || undefined,
           sexe: sexe || undefined,
           niveau_id: niveauId || undefined,
-          statut: statut || undefined,
         }),
         listNiveaux(token),
       ]);
@@ -44,7 +43,7 @@ export default function ElevesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, sexe, niveauId, statut]);
+  }, [search, sexe, niveauId]);
 
   useEffect(() => {
     load();
@@ -105,22 +104,6 @@ export default function ElevesPage() {
             <option key={n.id} value={n.id}>{n.libelle}</option>
           ))}
         </select>
-        <select
-          value={statut}
-          onChange={(e) => setStatut(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        >
-          <option value="actif">Actifs</option>
-          <option value="inactif">Inactifs</option>
-          <option value="">Tous</option>
-        </select>
-        <button
-          type="button"
-          onClick={load}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
-        >
-          Filtrer
-        </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -151,11 +134,11 @@ export default function ElevesPage() {
                   <td className="px-4 py-3">{e.classe_nom ?? "—"}</td>
                   <td className="px-4 py-3">{e.date_naissance}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-3">
-                      <Link href={`/dashboard/eleves/${e.id}`} className="text-emerald-700 hover:underline">
-                        {canEnroll ? "Modifier" : "Voir"}
-                      </Link>
-                    </div>
+                    <IconActionLink
+                      href={`/dashboard/eleves/${e.id}`}
+                      label={canEnroll ? "Modifier l'élève" : "Voir la fiche élève"}
+                      icon={canEnroll ? "edit" : "view"}
+                    />
                   </td>
                 </tr>
               ))

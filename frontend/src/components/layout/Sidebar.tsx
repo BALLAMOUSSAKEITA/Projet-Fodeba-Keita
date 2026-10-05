@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hasPermission } from "@/lib/auth/session";
-import { NAV_SECTIONS } from "@/lib/navigation";
+import { NAV_SECTIONS, filterVisibleNavItems } from "@/lib/navigation";
 import { NavIcon } from "@/components/ui/NavIcon";
 import { Logo } from "@/components/layout/Logo";
 
@@ -22,7 +22,7 @@ export function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
         {NAV_SECTIONS.map((section) => {
-          const items = section.items.filter((i) => !i.permission || hasPermission(i.permission));
+          const items = filterVisibleNavItems(section.items, (p) => !p || hasPermission(p));
           if (items.length === 0) return null;
 
           return (

@@ -20,6 +20,7 @@ import {
 } from "@/lib/api/eleves";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CrudActions } from "@/components/ui/CrudActions";
+import { IconActionButton } from "@/components/ui/IconAction";
 import { listClasses, listNiveaux } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
@@ -410,13 +411,14 @@ export default function EleveDetailPage() {
           <p className="mt-1 text-sm text-red-800">
             La suppression définitive n&apos;est possible que si l&apos;élève n&apos;a ni notes ni paiements enregistrés.
           </p>
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="mt-3 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-          >
-            Supprimer l&apos;élève
-          </button>
+          <div className="mt-3">
+            <IconActionButton
+              label="Supprimer l'élève"
+              variant="danger"
+              icon="trash"
+              onClick={() => setConfirmDelete(true)}
+            />
+          </div>
         </section>
       )}
 

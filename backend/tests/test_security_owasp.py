@@ -33,20 +33,14 @@ async def test_sql_injection_recherche_eleves(client, admin_token):
 
 @pytest.mark.asyncio
 async def test_xss_stocke_dans_nom_eleve(client, admin_token):
-    niveau = (
-        await client.get("/api/v1/parametrage/niveaux", headers={"Authorization": f"Bearer {admin_token}"})
-    ).json()[0]
+    from tests.helpers import default_eleve_create_payload
+
+    payload = await default_eleve_create_payload(client, admin_token)
+    payload.update({"nom": XSS_PAYLOAD, "prenoms": "TestSec", "date_naissance": "2015-06-01"})
     r = await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={
-            "nom": XSS_PAYLOAD,
-            "prenoms": "TestSec",
-            "sexe": "M",
-            "date_naissance": "2015-06-01",
-            "niveau_id": niveau["id"],
-            "tuteurs": [{"type": "pere", "nom": "T", "prenoms": "P", "telephone": "+224621999999"}],
-        },
+        json=payload,
     )
     assert r.status_code == 201
     assert r.json()["nom"] == XSS_PAYLOAD

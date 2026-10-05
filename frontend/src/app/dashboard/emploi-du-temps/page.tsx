@@ -1,14 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  createSeance,
-  downloadEdtExcel,
-  downloadEdtPdf,
-  getGrilleClasse,
-  getGrilleEnseignant,
-  listConflits,
-} from "@/lib/api/edt";
+import { createSeance, getGrilleClasse, listConflits } from "@/lib/api/edt";
 import { listClasses, listMatieres } from "@/lib/api/parametrage";
 import { listPersonnel } from "@/lib/api/personnel";
 import { ApiError } from "@/lib/api/client";
@@ -18,12 +11,10 @@ import type { Classe, Matiere } from "@/types/parametrage";
 import type { PersonnelListItem } from "@/types/personnel";
 
 export default function EmploiDuTempsPage() {
-  const [mode, setMode] = useState<"classe" | "enseignant">("classe");
   const [classes, setClasses] = useState<Classe[]>([]);
   const [enseignants, setEnseignants] = useState<PersonnelListItem[]>([]);
   const [matieres, setMatieres] = useState<Matiere[]>([]);
   const [selectedClasse, setSelectedClasse] = useState("");
-  const [selectedEnseignant, setSelectedEnseignant] = useState("");
   const [grille, setGrille] = useState<GrilleEdt | null>(null);
   const [globalConflits, setGlobalConflits] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -43,27 +34,24 @@ export default function EmploiDuTempsPage() {
     setEnseignants(p.items);
     setMatieres(m);
     setGlobalConflits(conflits.total);
-    if (c.length > 0 && !selectedClasse) setSelectedClasse(c[0].id);
-    if (p.items.length > 0 && !selectedEnseignant) setSelectedEnseignant(p.items[0].id);
-  }, [selectedClasse, selectedEnseignant]);
+    if (c.length > 0) {
+      setSelectedClasse((current) => current || c[0].id);
+    }
+  }, []);
 
   const loadGrille = useCallback(async () => {
     const token = getToken();
-    if (!token) return;
+    if (!token || !selectedClasse) return;
     setLoading(true);
     setError(null);
     try {
-      if (mode === "classe" && selectedClasse) {
-        setGrille(await getGrilleClasse(token, selectedClasse));
-      } else if (mode === "enseignant" && selectedEnseignant) {
-        setGrille(await getGrilleEnseignant(token, selectedEnseignant));
-      }
+      setGrille(await getGrilleClasse(token, selectedClasse));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
-  }, [mode, selectedClasse, selectedEnseignant]);
+  }, [selectedClasse]);
 
   useEffect(() => {
     loadRefs();
@@ -73,100 +61,41 @@ export default function EmploiDuTempsPage() {
     loadGrille();
   }, [loadGrille]);
 
-  async function handleExportPdf() {
-    const token = getToken();
-    if (!token || !selectedClasse) return;
-    const nom = classes.find((c) => c.id === selectedClasse)?.nom ?? "classe";
-    await downloadEdtPdf(token, selectedClasse, `edt_${nom.replace(/\s+/g, "_")}.pdf`);
-  }
-
-  async function handleExportExcel() {
-    const token = getToken();
-    if (!token || !selectedClasse) return;
-    const nom = classes.find((c) => c.id === selectedClasse)?.nom ?? "classe";
-    await downloadEdtExcel(token, selectedClasse, `edt_${nom.replace(/\s+/g, "_")}.xlsx`);
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Emploi du temps</h2>
-          <p className="text-sm text-slate-500">
-            {globalConflits > 0 ? (
-              <span className="font-medium text-red-600">{globalConflits} conflit(s) détecté(s)</span>
-            ) : (
-              "Aucun conflit global"
-            )}
-          </p>
-        </div>
-        {mode === "classe" && selectedClasse && (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleExportPdf}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
-            >
-              Export PDF
-            </button>
-            <button
-              type="button"
-              onClick={handleExportExcel}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
-            >
-              Export Excel
-            </button>
-          </div>
-        )}
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900">Emploi du temps</h2>
+        <p className="text-sm text-slate-500">
+          {globalConflits > 0 ? (
+            <span className="font-medium text-red-600">{globalConflits} conflit(s) détecté(s)</span>
+          ) : (
+            "Aucun conflit global"
+          )}
+        </p>
       </div>
 
       {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div className="flex flex-wrap gap-3">
-        <div className="flex rounded-lg border border-slate-200 p-1">
-          <button
-            type="button"
-            onClick={() => setMode("classe")}
-            className={`rounded-md px-4 py-1.5 text-sm ${mode === "classe" ? "bg-emerald-700 text-white" : "text-slate-600"}`}
-          >
-            Par classe
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("enseignant")}
-            className={`rounded-md px-4 py-1.5 text-sm ${mode === "enseignant" ? "bg-emerald-700 text-white" : "text-slate-600"}`}
-          >
-            Par enseignant
-          </button>
-        </div>
-
-        {mode === "classe" ? (
-          <select
-            value={selectedClasse}
-            onChange={(e) => setSelectedClasse(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          >
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>{c.nom}</option>
-            ))}
-          </select>
-        ) : (
-          <select
-            value={selectedEnseignant}
-            onChange={(e) => setSelectedEnseignant(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          >
-            {enseignants.map((e) => (
-              <option key={e.id} value={e.id}>{e.prenoms} {e.nom}</option>
-            ))}
-          </select>
-        )}
+        <select
+          value={selectedClasse}
+          onChange={(e) => setSelectedClasse(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        >
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nom}
+            </option>
+          ))}
+        </select>
       </div>
 
       {grille && grille.conflits.length > 0 && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {grille.conflits.map((c, i) => (
-            <p key={i}>{c.message} ({c.type})</p>
+            <p key={i}>
+              {c.message} ({c.type})
+            </p>
           ))}
         </div>
       )}
@@ -180,7 +109,9 @@ export default function EmploiDuTempsPage() {
               <tr>
                 <th className="px-3 py-2 text-left font-medium">Créneau</th>
                 {grille.jours.map((j) => (
-                  <th key={j} className="px-3 py-2 text-left font-medium">{j}</th>
+                  <th key={j} className="px-3 py-2 text-left font-medium">
+                    {j}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -200,14 +131,13 @@ export default function EmploiDuTempsPage() {
                         <div className="rounded-lg bg-emerald-50 p-2 text-xs">
                           <p className="font-semibold text-emerald-900">{cell.matiere?.libelle}</p>
                           {cell.personnel && (
-                            <p className="text-emerald-700">{cell.personnel.prenoms} {cell.personnel.nom}</p>
+                            <p className="text-emerald-700">
+                              {cell.personnel.prenoms} {cell.personnel.nom}
+                            </p>
                           )}
                           {cell.salle && <p className="text-slate-500">{cell.salle}</p>}
-                          {mode === "classe" && cell.classe && (
-                            <p className="text-slate-500">{cell.classe.nom}</p>
-                          )}
                         </div>
-                      ) : canManage && mode === "classe" ? (
+                      ) : canManage ? (
                         <AddSeanceButton
                           creneauId={ligne.creneau.id}
                           jour={j}
@@ -282,15 +212,35 @@ function AddSeanceButton({
 
   return (
     <div className="space-y-1 rounded border border-slate-200 p-2">
-      <select value={matiereId} onChange={(e) => setMatiereId(e.target.value)} className="w-full rounded border px-1 py-0.5 text-xs">
-        {matieres.map((m) => <option key={m.id} value={m.id}>{m.libelle}</option>)}
+      <select
+        value={matiereId}
+        onChange={(e) => setMatiereId(e.target.value)}
+        className="w-full rounded border px-1 py-0.5 text-xs"
+      >
+        {matieres.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.libelle}
+          </option>
+        ))}
       </select>
-      <select value={personnelId} onChange={(e) => setPersonnelId(e.target.value)} className="w-full rounded border px-1 py-0.5 text-xs">
-        {enseignants.map((e) => <option key={e.id} value={e.id}>{e.prenoms} {e.nom}</option>)}
+      <select
+        value={personnelId}
+        onChange={(e) => setPersonnelId(e.target.value)}
+        className="w-full rounded border px-1 py-0.5 text-xs"
+      >
+        {enseignants.map((e) => (
+          <option key={e.id} value={e.id}>
+            {e.prenoms} {e.nom}
+          </option>
+        ))}
       </select>
       <div className="flex gap-1">
-        <button type="button" onClick={handleAdd} className="text-xs text-emerald-700">OK</button>
-        <button type="button" onClick={() => setOpen(false)} className="text-xs text-slate-500">Annuler</button>
+        <button type="button" onClick={handleAdd} className="text-xs text-emerald-700">
+          OK
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-slate-500">
+          Annuler
+        </button>
       </div>
     </div>
   );

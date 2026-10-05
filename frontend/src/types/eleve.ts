@@ -70,6 +70,7 @@ export interface CreateEleveRequest {
   groupe_sanguin?: string;
   allergies?: string;
   niveau_id: string;
+  classe_id: string;
   tuteurs: {
     type: string;
     nom: string;

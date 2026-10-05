@@ -22,6 +22,8 @@ export type NavItem = {
   label: string;
   icon: NavIconName;
   permission?: string;
+  /** Masquer dans le menu latéral / accès rapide (la page reste accessible par URL). */
+  menuHidden?: boolean;
 };
 
 export type NavSection = {
@@ -39,14 +41,27 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/dashboard/classes", label: "Classes", icon: "classes", permission: "students.view" },
       { href: "/dashboard/eleves", label: "Élèves", icon: "students", permission: "students.view" },
-      { href: "/dashboard/notes", label: "Notes", icon: "grades", permission: "grades.modify" },
+      {
+        href: "/dashboard/notes",
+        label: "Notes",
+        icon: "grades",
+        permission: "grades.modify",
+        menuHidden: true,
+      },
       {
         href: "/dashboard/bulletins",
         label: "Bulletins",
         icon: "reports-card",
         permission: "grades.validate_bulletins",
+        menuHidden: true,
       },
-      { href: "/dashboard/presences", label: "Présences", icon: "attendance", permission: "attendance.view" },
+      {
+        href: "/dashboard/presences",
+        label: "Présences",
+        icon: "attendance",
+        permission: "attendance.view",
+        menuHidden: true,
+      },
       {
         href: "/dashboard/emploi-du-temps",
         label: "Emploi du temps",
@@ -101,6 +116,15 @@ const ROUTE_TITLES: Record<string, string> = {
   "/dashboard/portail": "Portail parent",
   "/dashboard/parametres": "Paramètres",
 };
+
+export function filterVisibleNavItems(
+  items: NavItem[],
+  hasAccess: (permission?: string) => boolean,
+): NavItem[] {
+  return items.filter(
+    (item) => !item.menuHidden && (!item.permission || hasAccess(item.permission)),
+  );
+}
 
 export function getPageTitle(pathname: string): string {
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];

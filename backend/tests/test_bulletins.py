@@ -14,10 +14,9 @@ async def _setup_notes(client, admin_token):
     eleve = (await client.post("/api/v1/eleves", headers={"Authorization": f"Bearer {admin_token}"}, json={
         "nom": "Bulletin", "prenoms": "Test", "sexe": "M", "date_naissance": "2015-01-01",
         "niveau_id": primaire["niveau_id"],
+        "classe_id": primaire["id"],
         "tuteurs": [{"type": "pere", "nom": "B", "prenoms": "P", "telephone": "+224621000088"}],
     })).json()
-    await client.post(f"/api/v1/eleves/{eleve['id']}/affecter-classe", headers={"Authorization": f"Bearer {admin_token}"},
-                      json={"classe_id": primaire["id"]})
 
     ev = (await client.post("/api/v1/notes/evaluations", headers={"Authorization": f"Bearer {admin_token}"}, json={
         "libelle": "Compo T1", "classe_id": primaire["id"], "matiere_id": matieres[0]["id"],

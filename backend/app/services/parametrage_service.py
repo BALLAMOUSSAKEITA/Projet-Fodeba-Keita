@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -57,7 +58,28 @@ async def update_etablissement(db: AsyncSession, data: EtablissementUpdate) -> E
     return etab
 
 
+CATALOG_ANNEES_SCO: list[tuple[str, date, date]] = [
+    ("2026-2027", date(2026, 9, 15), date(2027, 7, 15)),
+    ("2027-2028", date(2027, 9, 15), date(2028, 7, 15)),
+    ("2028-2029", date(2028, 9, 15), date(2029, 7, 15)),
+    ("2029-2030", date(2029, 9, 15), date(2030, 7, 15)),
+]
+
+
+async def ensure_catalog_annees_scolaires(db: AsyncSession) -> None:
+    result = await db.execute(select(AnneeScolaire.libelle))
+    existing = set(result.scalars().all())
+    for libelle, debut, fin in CATALOG_ANNEES_SCO:
+        if libelle in existing:
+            continue
+        await create_annee(
+            db,
+            AnneeScolaireCreate(libelle=libelle, date_debut=debut, date_fin=fin),
+        )
+
+
 async def list_annees(db: AsyncSession) -> list[AnneeScolaire]:
+    await ensure_catalog_annees_scolaires(db)
     result = await db.execute(select(AnneeScolaire).order_by(AnneeScolaire.date_debut.desc()))
     return list(result.scalars().all())
 

@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createTransfertEntrant } from "@/lib/api/eleves";
-import { listNiveaux } from "@/lib/api/parametrage";
+import { listClasses, listNiveaux } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
-import type { Niveau } from "@/types/parametrage";
+import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
+import type { Classe, Niveau } from "@/types/parametrage";
 
 const EMPTY_TUTEUR = {
   type: "pere",
@@ -19,7 +20,9 @@ const EMPTY_TUTEUR = {
 
 export default function TransfertEntrantPage() {
   const router = useRouter();
+  const { anneeId } = useAnneeScolaire();
   const [niveaux, setNiveaux] = useState<Niveau[]>([]);
+  const [classes, setClasses] = useState<Classe[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +35,7 @@ export default function TransfertEntrantPage() {
     nationalite: "Guinéenne",
     adresse: "",
     niveau_id: "",
+    classe_id: "",
     ecole_origine: "",
     date_transfert: "",
     observations: "",
@@ -40,12 +44,31 @@ export default function TransfertEntrantPage() {
 
   useEffect(() => {
     const token = getToken();
-    if (!token) return;
-    listNiveaux(token).then((data) => {
-      setNiveaux(data);
-      if (data.length > 0) setForm((f) => ({ ...f, niveau_id: data[0].id }));
+    if (!token || !anneeId) return;
+    Promise.all([listNiveaux(token), listClasses(token, anneeId)]).then(([niveauxData, classesData]) => {
+      setNiveaux(niveauxData);
+      setClasses(classesData);
+      if (niveauxData.length > 0) {
+        const niveauId = niveauxData[0].id;
+        const firstClasse = classesData.find((c) => c.niveau_id === niveauId);
+        setForm((f) => ({
+          ...f,
+          niveau_id: niveauId,
+          classe_id: firstClasse?.id ?? "",
+        }));
+      }
     });
-  }, []);
+  }, [anneeId]);
+
+  const classesForNiveau = useMemo(
+    () => classes.filter((c) => c.niveau_id === form.niveau_id),
+    [classes, form.niveau_id],
+  );
+
+  function onNiveauChange(niveauId: string) {
+    const firstClasse = classes.find((c) => c.niveau_id === niveauId);
+    setForm((f) => ({ ...f, niveau_id: niveauId, classe_id: firstClasse?.id ?? "" }));
+  }
 
   if (!hasPermission("students.enroll")) {
     return (
@@ -59,6 +82,10 @@ export default function TransfertEntrantPage() {
     e.preventDefault();
     const token = getToken();
     if (!token) return;
+    if (!form.classe_id) {
+      setError("Choisissez une classe pour ce niveau.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -144,13 +171,31 @@ export default function TransfertEntrantPage() {
               <label className="mb-1 block text-sm font-medium text-slate-700">Niveau *</label>
               <select
                 value={form.niveau_id}
-                onChange={(e) => setForm({ ...form, niveau_id: e.target.value })}
+                onChange={(e) => onNiveauChange(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 required
               >
                 {niveaux.map((n) => (
                   <option key={n.id} value={n.id}>{n.libelle}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Classe *</label>
+              <select
+                value={form.classe_id}
+                onChange={(e) => setForm({ ...form, classe_id: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                required
+                disabled={classesForNiveau.length === 0}
+              >
+                {classesForNiveau.length === 0 ? (
+                  <option value="">Aucune classe pour ce niveau</option>
+                ) : (
+                  classesForNiveau.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nom}</option>
+                  ))
+                )}
               </select>
             </div>
           </div>
@@ -182,7 +227,7 @@ export default function TransfertEntrantPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !form.classe_id}
           className="rounded-lg bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : "Enregistrer le transfert entrant"}

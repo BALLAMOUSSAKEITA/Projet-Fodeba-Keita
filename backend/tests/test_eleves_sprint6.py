@@ -1,30 +1,24 @@
 import pytest
 
+from tests.helpers import default_eleve_create_payload, get_classe_for_niveau, get_niveau_by_code
+
 
 async def _niveau(client, token, code):
-    r = await client.get("/api/v1/parametrage/niveaux", headers={"Authorization": f"Bearer {token}"})
-    return next(n for n in r.json() if n["code"] == code)
+    return await get_niveau_by_code(client, token, code)
 
 
 async def _classe(client, token, niveau_code):
     niveau = await _niveau(client, token, niveau_code)
-    r = await client.get("/api/v1/parametrage/classes", headers={"Authorization": f"Bearer {token}"})
-    return next(c for c in r.json() if c["niveau_id"] == niveau["id"])
+    return await get_classe_for_niveau(client, token, niveau["id"])
 
 
 async def _create_eleve(client, token, nom="Test", niveau_code="3A"):
-    niveau = await _niveau(client, token, niveau_code)
+    payload = await default_eleve_create_payload(client, token, niveau_code, nom=nom)
+    payload["tuteurs"] = [{"type": "pere", "nom": nom, "prenoms": "Papa", "telephone": "+224621000000"}]
     r = await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {token}"},
-        json={
-            "nom": nom,
-            "prenoms": "Eleve",
-            "sexe": "M",
-            "date_naissance": "2015-01-01",
-            "niveau_id": niveau["id"],
-            "tuteurs": [{"type": "pere", "nom": nom, "prenoms": "Papa", "telephone": "+224621000000"}],
-        },
+        json=payload,
     )
     assert r.status_code == 201
     return r.json()

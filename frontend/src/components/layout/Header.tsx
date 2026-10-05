@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { UserInfo } from "@/types/auth";
 import { ROLE_LABELS, clearSession } from "@/lib/auth/session";
 import { getPageTitle } from "@/lib/navigation";
+import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
 import { SyncStatusIndicator } from "@/components/layout/SyncStatusIndicator";
 
 interface HeaderProps {
@@ -19,11 +20,28 @@ function initials(user: UserInfo): string {
 export function Header({ user }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { annees, anneeId, setAnneeId, loading: anneesLoading } = useAnneeScolaire();
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
-      <div>
+      <div className="flex min-w-0 flex-wrap items-center gap-4">
         <h1 className="text-lg font-semibold text-slate-900">{getPageTitle(pathname)}</h1>
+        {!anneesLoading && annees.length > 0 && (
+          <label className="text-sm">
+            <span className="sr-only">Année scolaire</span>
+            <select
+              value={anneeId}
+              onChange={(e) => setAnneeId(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700"
+            >
+              {annees.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.libelle}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <div className="flex items-center gap-3">

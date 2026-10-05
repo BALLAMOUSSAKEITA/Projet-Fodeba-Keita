@@ -114,6 +114,9 @@ async def test_portail_acces_refuse(client, parent_token, admin_token):
         )
     ).json()
     n3a = next(n for n in niveau if n["code"] == "3A")
+    from tests.helpers import get_classe_for_niveau
+
+    classe_3a = await get_classe_for_niveau(client, admin_token, n3a["id"])
 
     autre = (
         await client.post(
@@ -125,6 +128,7 @@ async def test_portail_acces_refuse(client, parent_token, admin_token):
                 "sexe": "M",
                 "date_naissance": "2015-01-01",
                 "niveau_id": n3a["id"],
+                "classe_id": classe_3a["id"],
                 "tuteurs": [
                     {
                         "type": "pere",

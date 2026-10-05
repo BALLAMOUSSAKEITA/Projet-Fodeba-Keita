@@ -32,6 +32,7 @@ async def test_parcours_inscription_bulletin_paiement(client, admin_token):
                 "sexe": "F",
                 "date_naissance": "2015-08-15",
                 "niveau_id": classe["niveau_id"],
+                "classe_id": classe["id"],
                 "tuteurs": [
                     {"type": "mere", "nom": "Parcours", "prenoms": "Maman", "telephone": "+224621777777"}
                 ],
@@ -39,14 +40,6 @@ async def test_parcours_inscription_bulletin_paiement(client, admin_token):
         )
     ).json()
     assert eleve["matricule"]
-
-    # 2. Affectation classe
-    aff = await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers=headers,
-        json={"classe_id": classe["id"]},
-    )
-    assert aff.status_code == 200
 
     dossier = (await client.get(f"/api/v1/eleves/{eleve['id']}", headers=headers)).json()
     assert dossier["inscriptions"]

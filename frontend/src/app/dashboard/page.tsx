@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getDashboardKPI } from "@/lib/api/rapports";
 import { ApiError } from "@/lib/api/client";
 import { ROLE_LABELS, getToken, getUser, hasPermission } from "@/lib/auth/session";
-import { NAV_SECTIONS } from "@/lib/navigation";
+import { NAV_SECTIONS, filterVisibleNavItems } from "@/lib/navigation";
 import { NavIcon } from "@/components/ui/NavIcon";
 import type { DashboardKPI } from "@/types/rapports";
 
@@ -30,9 +30,10 @@ export default function DashboardPage() {
 
   const shortcuts = useMemo(
     () =>
-      NAV_SECTIONS.flatMap((section) => section.items).filter(
-        (item) => item.href !== "/dashboard" && (!item.permission || hasPermission(item.permission)),
-      ),
+      filterVisibleNavItems(
+        NAV_SECTIONS.flatMap((section) => section.items),
+        (p) => !p || hasPermission(p),
+      ).filter((item) => item.href !== "/dashboard"),
     [],
   );
 

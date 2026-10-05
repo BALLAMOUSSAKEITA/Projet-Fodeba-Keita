@@ -1,17 +1,16 @@
 import pytest
 
+from tests.helpers import get_classe_for_niveau, get_niveau_by_code
+
 
 async def _get_niveau_3a(client, admin_token):
-    response = await client.get(
-        "/api/v1/parametrage/niveaux",
-        headers={"Authorization": f"Bearer {admin_token}"},
-    )
-    return next(n for n in response.json() if n["code"] == "3A")
+    return await get_niveau_by_code(client, admin_token, "3A")
 
 
 @pytest.mark.asyncio
 async def test_create_eleve_with_matricule(client, admin_token):
     niveau = await _get_niveau_3a(client, admin_token)
+    classe = await get_classe_for_niveau(client, admin_token, niveau["id"])
     response = await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -24,6 +23,7 @@ async def test_create_eleve_with_matricule(client, admin_token):
             "nationalite": "Guinéenne",
             "adresse": "Ratoma",
             "niveau_id": niveau["id"],
+            "classe_id": classe["id"],
             "tuteurs": [
                 {
                     "type": "pere",
@@ -42,11 +42,13 @@ async def test_create_eleve_with_matricule(client, admin_token):
     assert len(data["tuteurs"]) == 1
     assert len(data["inscriptions"]) == 1
     assert data["inscriptions"][0]["type"] == "nouvelle"
+    assert data["inscriptions"][0]["classe_id"] == classe["id"]
 
 
 @pytest.mark.asyncio
 async def test_list_eleves_with_search(client, admin_token):
     niveau = await _get_niveau_3a(client, admin_token)
+    classe = await get_classe_for_niveau(client, admin_token, niveau["id"])
     await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -56,6 +58,7 @@ async def test_list_eleves_with_search(client, admin_token):
             "sexe": "F",
             "date_naissance": "2016-07-20",
             "niveau_id": niveau["id"],
+            "classe_id": classe["id"],
             "tuteurs": [
                 {
                     "type": "mere",
@@ -85,6 +88,7 @@ async def test_reinscription_eleve(client, admin_token):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     niveau_4a = next(n for n in niveaux.json() if n["code"] == "4A")
+    classe_3a = await get_classe_for_niveau(client, admin_token, niveau_3a["id"])
 
     create = await client.post(
         "/api/v1/eleves",
@@ -95,6 +99,7 @@ async def test_reinscription_eleve(client, admin_token):
             "sexe": "M",
             "date_naissance": "2014-01-15",
             "niveau_id": niveau_3a["id"],
+            "classe_id": classe_3a["id"],
             "tuteurs": [
                 {"type": "pere", "nom": "Bah", "prenoms": "Sekou", "telephone": "+224623333333"}
             ],
@@ -116,6 +121,7 @@ async def test_reinscription_eleve(client, admin_token):
 @pytest.mark.asyncio
 async def test_get_eleve_detail(client, admin_token):
     niveau = await _get_niveau_3a(client, admin_token)
+    classe = await get_classe_for_niveau(client, admin_token, niveau["id"])
     create = await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -125,6 +131,7 @@ async def test_get_eleve_detail(client, admin_token):
             "sexe": "F",
             "date_naissance": "2015-11-05",
             "niveau_id": niveau["id"],
+            "classe_id": classe["id"],
             "tuteurs": [
                 {"type": "tuteur", "nom": "Soumah", "prenoms": "Mariama", "telephone": "+224624444444"}
             ],
@@ -151,6 +158,7 @@ async def test_rbac_eleves_forbidden(client, teacher_token):
             "sexe": "M",
             "date_naissance": "2015-01-01",
             "niveau_id": "00000000-0000-0000-0000-000000000001",
+            "classe_id": "00000000-0000-0000-0000-000000000002",
             "tuteurs": [
                 {"type": "pere", "nom": "Test", "prenoms": "Test", "telephone": "+224620000000"}
             ],
@@ -162,6 +170,7 @@ async def test_rbac_eleves_forbidden(client, teacher_token):
 @pytest.mark.asyncio
 async def test_teacher_can_view_eleves(client, teacher_token, admin_token):
     niveau = await _get_niveau_3a(client, admin_token)
+    classe = await get_classe_for_niveau(client, admin_token, niveau["id"])
     await client.post(
         "/api/v1/eleves",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -171,6 +180,7 @@ async def test_teacher_can_view_eleves(client, teacher_token, admin_token):
             "sexe": "M",
             "date_naissance": "2015-05-10",
             "niveau_id": niveau["id"],
+            "classe_id": classe["id"],
             "tuteurs": [
                 {"type": "pere", "nom": "Kourouma", "prenoms": "Ali", "telephone": "+224625555555"}
             ],

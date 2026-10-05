@@ -32,15 +32,10 @@ async def _setup_evaluation(client, admin_token):
             "sexe": "M",
             "date_naissance": "2015-03-01",
             "niveau_id": classes[0]["niveau_id"],
+            "classe_id": classes[0]["id"],
             "tuteurs": [{"type": "pere", "nom": "T", "prenoms": "P", "telephone": "+224621000099"}],
         },
     )).json()
-
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classes[0]["id"]},
-    )
 
     ev = (await client.post(
         "/api/v1/notes/evaluations",

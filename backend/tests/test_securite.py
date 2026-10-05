@@ -26,24 +26,21 @@ async def test_historique_paiement_apres_encaissement(client, admin_token):
             headers={"Authorization": f"Bearer {admin_token}"},
         )
     ).json()
-    niveau = next(
-        n for n in (
-            await client.get("/api/v1/parametrage/niveaux", headers={"Authorization": f"Bearer {admin_token}"})
-        ).json()
-        if n["code"] == "3A"
+    from tests.helpers import default_eleve_create_payload
+
+    payload = await default_eleve_create_payload(
+        client,
+        admin_token,
+        nom="Audit",
+        prenoms="Test Paiement",
+        date_naissance="2015-05-01",
     )
+    payload["tuteurs"] = [{"type": "pere", "nom": "Audit", "prenoms": "Papa", "telephone": "+224621234567"}]
     eleve = (
         await client.post(
             "/api/v1/eleves",
             headers={"Authorization": f"Bearer {admin_token}"},
-            json={
-                "nom": "Audit",
-                "prenoms": "Test Paiement",
-                "sexe": "M",
-                "date_naissance": "2015-05-01",
-                "niveau_id": niveau["id"],
-                "tuteurs": [{"type": "pere", "nom": "Audit", "prenoms": "Papa", "telephone": "+224621234567"}],
-            },
+            json=payload,
         )
     ).json()
     types_frais = (
@@ -118,24 +115,20 @@ async def test_annee_cloturee_bloque_paiement(client, admin_token):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
 
-    niveau = next(
-        n for n in (
-            await client.get("/api/v1/parametrage/niveaux", headers={"Authorization": f"Bearer {admin_token}"})
-        ).json()
-        if n["code"] == "3A"
+    from tests.helpers import default_eleve_create_payload
+
+    payload = await default_eleve_create_payload(
+        client,
+        admin_token,
+        nom="Bloque",
+        prenoms="Cloture",
     )
+    payload["tuteurs"] = [{"type": "pere", "nom": "B", "prenoms": "P", "telephone": "+224621234568"}]
     eleve = (
         await client.post(
             "/api/v1/eleves",
             headers={"Authorization": f"Bearer {admin_token}"},
-            json={
-                "nom": "Bloque",
-                "prenoms": "Cloture",
-                "sexe": "M",
-                "date_naissance": "2015-01-01",
-                "niveau_id": niveau["id"],
-                "tuteurs": [{"type": "pere", "nom": "B", "prenoms": "P", "telephone": "+224621234568"}],
-            },
+            json=payload,
         )
     ).json()
     types_frais = (

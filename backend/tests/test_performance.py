@@ -31,15 +31,11 @@ async def _setup_bulletin(client, admin_token):
                 "sexe": "M",
                 "date_naissance": "2015-01-01",
                 "niveau_id": classe["niveau_id"],
+                "classe_id": classe["id"],
                 "tuteurs": [{"type": "pere", "nom": "P", "prenoms": "T", "telephone": "+224621888888"}],
             },
         )
     ).json()
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classe["id"]},
-    )
     ev = (
         await client.post(
             "/api/v1/notes/evaluations",

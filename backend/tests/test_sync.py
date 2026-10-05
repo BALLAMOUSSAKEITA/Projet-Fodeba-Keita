@@ -79,15 +79,11 @@ async def test_sync_push_notes(client, admin_token):
                 "sexe": "M",
                 "date_naissance": "2015-03-01",
                 "niveau_id": classe["niveau_id"],
+                "classe_id": classe["id"],
                 "tuteurs": [{"type": "pere", "nom": "Sync", "prenoms": "Papa", "telephone": "+224621222222"}],
             },
         )
     ).json()
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classe["id"]},
-    )
 
     grille = (
         await client.get(
@@ -142,15 +138,11 @@ async def test_sync_push_presence(client, admin_token):
                 "sexe": "F",
                 "date_naissance": "2015-04-01",
                 "niveau_id": classe["niveau_id"],
+                "classe_id": classe["id"],
                 "tuteurs": [{"type": "mere", "nom": "Sync", "prenoms": "Maman", "telephone": "+224621333333"}],
             },
         )
     ).json()
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classe["id"]},
-    )
 
     appel = (
         await client.get(
@@ -199,25 +191,17 @@ async def test_sync_push_paiement_idempotent(client, admin_token):
             headers={"Authorization": f"Bearer {admin_token}"},
         )
     ).json()
-    niveau = next(
-        n
-        for n in (
-            await client.get("/api/v1/parametrage/niveaux", headers={"Authorization": f"Bearer {admin_token}"})
-        ).json()
-        if n["code"] == "3A"
+    from tests.helpers import default_eleve_create_payload
+
+    payload = await default_eleve_create_payload(
+        client, admin_token, nom="Sync", prenoms="Paiement", date_naissance="2015-03-01"
     )
+    payload["tuteurs"] = [{"type": "pere", "nom": "Sync", "prenoms": "Papa", "telephone": "+224621111111"}]
     eleve = (
         await client.post(
             "/api/v1/eleves",
             headers={"Authorization": f"Bearer {admin_token}"},
-            json={
-                "nom": "Sync",
-                "prenoms": "Paiement",
-                "sexe": "M",
-                "date_naissance": "2015-03-01",
-                "niveau_id": niveau["id"],
-                "tuteurs": [{"type": "pere", "nom": "Sync", "prenoms": "Papa", "telephone": "+224621111111"}],
-            },
+            json=payload,
         )
     ).json()
     types_frais = (
@@ -269,15 +253,11 @@ async def test_sync_conflict_notes(client, admin_token):
                 "sexe": "M",
                 "date_naissance": "2015-03-01",
                 "niveau_id": classe["niveau_id"],
+                "classe_id": classe["id"],
                 "tuteurs": [{"type": "pere", "nom": "Conflict", "prenoms": "Papa", "telephone": "+224621444444"}],
             },
         )
     ).json()
-    await client.post(
-        f"/api/v1/eleves/{eleve['id']}/affecter-classe",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"classe_id": classe["id"]},
-    )
 
     evaluation = (
         await client.post(

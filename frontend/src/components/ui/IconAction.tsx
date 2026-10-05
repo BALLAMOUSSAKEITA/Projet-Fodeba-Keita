@@ -60,14 +60,16 @@ export function IconActionLink({
   href,
   label,
   variant = "primary",
+  icon = "view",
 }: {
   href: string;
   label: string;
   variant?: keyof typeof variants;
+  icon?: "view" | "edit";
 }) {
   return (
     <Link href={href} className={`${baseClass} ${variants[variant]}`} title={label} aria-label={label}>
-      <IconView />
+      {icon === "edit" ? <IconEdit /> : <IconView />}
     </Link>
   );
 }

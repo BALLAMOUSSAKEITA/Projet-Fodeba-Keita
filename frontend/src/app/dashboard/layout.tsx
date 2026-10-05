@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/lib/api/auth";
+import { AnneeScolaireProvider } from "@/components/layout/AnneeScolaireProvider";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { SyncProvider } from "@/components/offline/SyncProvider";
@@ -54,8 +55,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <SyncProvider />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header user={user} />
-        <main className="flex-1 p-6">{children}</main>
+        <AnneeScolaireProvider>
+          <Header user={user} />
+          <main className="flex-1 p-6">{children}</main>
+        </AnneeScolaireProvider>
       </div>
     </div>
   );

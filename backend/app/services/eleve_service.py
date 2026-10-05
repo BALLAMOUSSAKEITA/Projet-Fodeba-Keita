@@ -206,11 +206,19 @@ async def create_eleve(db: AsyncSession, data: EleveCreate) -> Eleve:
     for tuteur_data in data.tuteurs:
         db.add(Tuteur(eleve_id=eleve.id, **tuteur_data.model_dump()))
 
+    classe = await classe_service.verify_capacity(db, data.classe_id, annee.id)
+    if classe.niveau_id != niveau.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La classe ne correspond pas au niveau choisi",
+        )
+
     db.add(
         Inscription(
             eleve_id=eleve.id,
             annee_scolaire_id=annee.id,
             niveau_id=niveau.id,
+            classe_id=classe.id,
             type=TypeInscription.NOUVELLE.value,
             date_inscription=date.today(),
             statut=StatutEleve.ACTIF.value,

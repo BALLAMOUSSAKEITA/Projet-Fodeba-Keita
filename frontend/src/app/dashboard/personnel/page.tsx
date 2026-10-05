@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { IconActionLink } from "@/components/ui/IconAction";
 import { listPersonnel } from "@/lib/api/personnel";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
@@ -116,9 +117,7 @@ export default function PersonnelPage() {
                   <td className="px-4 py-3">{p.fonction ?? p.specialite ?? "—"}</td>
                   <td className="px-4 py-3">{p.telephone}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/dashboard/personnel/${p.id}`} className="text-emerald-700 hover:underline">
-                      Voir
-                    </Link>
+                    <IconActionLink href={`/dashboard/personnel/${p.id}`} label="Voir la fiche personnel" />
                   </td>
                 </tr>
               ))
