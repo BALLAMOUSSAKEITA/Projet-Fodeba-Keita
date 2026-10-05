@@ -8,7 +8,6 @@ import {
   addConge,
   addContrat,
   addDiplome,
-  deactivatePersonnel,
   deletePersonnelPermanent,
   getPersonnel,
   setTitulaire,
@@ -54,7 +53,6 @@ export default function PersonnelDetailPage() {
   });
   const canManage = hasPermission("personnel.manage");
   const superAdmin = isSuperAdmin();
-  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -315,32 +313,15 @@ export default function PersonnelDetailPage() {
         />
       </section>
 
-      {canManage && personnel.statut === "actif" && (
-        <section className="rounded-xl border border-amber-100 bg-amber-50/50 p-6">
-          <h3 className="font-semibold text-amber-900">Désactivation</h3>
-          <p className="mt-1 text-sm text-amber-800">
-            Le membre reste en base mais n&apos;est plus considéré comme actif.
-          </p>
-          <div className="mt-3">
-            <IconActionButton
-              label="Désactiver"
-              icon="trash"
-              variant="neutral"
-              onClick={() => setConfirmDeactivate(true)}
-            />
-          </div>
-        </section>
-      )}
-
       {superAdmin && (
         <section className="rounded-xl border border-red-100 bg-red-50/50 p-6">
           <h3 className="font-semibold text-red-900">Zone sensible</h3>
           <p className="mt-1 text-sm text-red-800">
-            Suppression définitive de la fiche et des données associées (contrats, affectations, séances EDT, etc.).
+            Suppression de la fiche et des données associées (contrats, affectations, séances EDT, etc.).
           </p>
           <div className="mt-3">
             <IconActionButton
-              label="Supprimer définitivement"
+              label="Supprimer"
               icon="trash"
               variant="danger"
               onClick={() => setConfirmDelete(true)}
@@ -350,33 +331,10 @@ export default function PersonnelDetailPage() {
       )}
 
       <ConfirmDialog
-        open={confirmDeactivate}
-        title="Désactiver ce membre du personnel ?"
-        message="Il n'apparaîtra plus dans la liste des actifs."
-        confirmLabel="Désactiver"
-        danger
-        loading={actionLoading}
-        onCancel={() => setConfirmDeactivate(false)}
-        onConfirm={async () => {
-          const token = getToken();
-          if (!token) return;
-          setActionLoading(true);
-          try {
-            await deactivatePersonnel(token, id);
-            router.push("/dashboard/personnel");
-          } catch (err) {
-            setError(err instanceof ApiError ? err.message : "Erreur");
-          } finally {
-            setActionLoading(false);
-          }
-        }}
-      />
-
-      <ConfirmDialog
         open={confirmDelete}
-        title="Supprimer définitivement ce personnel ?"
+        title="Supprimer ce personnel ?"
         message="Cette action est irréversible."
-        confirmLabel="Supprimer définitivement"
+        confirmLabel="Supprimer"
         danger
         loading={actionLoading}
         onCancel={() => setConfirmDelete(false)}
