@@ -21,7 +21,7 @@ CATEGORIES = [
     ("DIVERS", "Dépenses diverses"),
 ]
 
-BUDGET_2025 = {
+BUDGET_ANNEE_ACTIVE = {
     "SALAIRES": Decimal("45000000"),
     "FOURNITURES": Decimal("8000000"),
     "ENTRETIEN": Decimal("5000000"),
@@ -64,7 +64,7 @@ async def seed_comptabilite(db: AsyncSession) -> None:
     )
     annee = annee_result.scalar_one_or_none()
     if annee:
-        for code, montant in BUDGET_2025.items():
+        for code, montant in BUDGET_ANNEE_ACTIVE.items():
             db.add(
                 BudgetLigne(
                     annee_scolaire_id=annee.id,
