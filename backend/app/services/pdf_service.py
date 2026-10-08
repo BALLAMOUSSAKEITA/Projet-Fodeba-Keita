@@ -6,17 +6,31 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 
+from app.core.etablissement_defaults import ADRESSE, LIEU_DELIVRANCE, NOM
 from app.models.eleve import Eleve
 from app.models.parametrage import Etablissement
 
 
+def _etab_adresse_ligne(etab: Etablissement | None) -> str:
+    if etab and etab.adresse:
+        return etab.adresse.strip()
+    if etab and etab.commune:
+        return f"Commune de {etab.commune}, Conakry"
+    return ADRESSE
+
+
+def _lieu_delivrance(etab: Etablissement | None) -> str:
+    if etab and etab.commune:
+        return f"{etab.commune}, Conakry"
+    return LIEU_DELIVRANCE
+
+
 def _draw_header(c: canvas.Canvas, etab: Etablissement | None, title: str) -> None:
     c.setFont("Helvetica-Bold", 14)
-    nom = etab.nom if etab else "Groupe Scolaire Privé Fodeba Keita"
+    nom = etab.nom if etab else NOM
     c.drawCentredString(A4[0] / 2, A4[1] - 2 * cm, nom)
     c.setFont("Helvetica", 10)
-    if etab and etab.adresse:
-        c.drawCentredString(A4[0] / 2, A4[1] - 2.6 * cm, etab.adresse)
+    c.drawCentredString(A4[0] / 2, A4[1] - 2.6 * cm, _etab_adresse_ligne(etab))
     c.setFont("Helvetica-Bold", 12)
     c.drawCentredString(A4[0] / 2, A4[1] - 3.6 * cm, title)
     c.line(2 * cm, A4[1] - 4 * cm, A4[0] - 2 * cm, A4[1] - 4 * cm)
@@ -41,7 +55,7 @@ def generate_attestation_scolarite(eleve: Eleve, etab: Etablissement | None, ann
         "",
         "La présente attestation est délivrée pour servir et valoir ce que de droit.",
         "",
-        f"Fait à Conakry, le {date.today().strftime('%d/%m/%Y')}",
+        f"Fait à {_lieu_delivrance(etab)}, le {date.today().strftime('%d/%m/%Y')}",
         "",
         "Le Directeur",
     ]
@@ -73,7 +87,7 @@ def generate_certificat_transfert(
         "",
         "Nous certifions qu'il/elle ne présente aucune objection de notre part.",
         "",
-        f"Fait à Conakry, le {date.today().strftime('%d/%m/%Y')}",
+        f"Fait à {_lieu_delivrance(etab)}, le {date.today().strftime('%d/%m/%Y')}",
         "",
         "Le Directeur",
     ]
@@ -365,7 +379,7 @@ def generate_recu_paiement(
     c.setFillColor(accent)
     c.rect(card_x, header_y, card_w, 0.18 * cm, fill=1, stroke=0)
 
-    nom = etab.nom if etab else "Groupe Scolaire Privé Fodeba Keita"
+    nom = etab.nom if etab else NOM
     c.setFillColor(HexColor("#ffffff"))
     c.setFont("Helvetica-Bold", 13)
     c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.35 * cm, nom)
@@ -373,10 +387,8 @@ def generate_recu_paiement(
     c.setFillColor(HexColor("#bbf7d0"))
     c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.95 * cm, "REÇU DE PAIEMENT — SCOLARITÉ")
 
-    contact_parts: list[str] = []
+    contact_parts: list[str] = [_etab_adresse_ligne(etab)]
     if etab:
-        if etab.adresse:
-            contact_parts.append(etab.adresse)
         if etab.telephone:
             contact_parts.append(f"Tél. {etab.telephone}")
         if etab.email:

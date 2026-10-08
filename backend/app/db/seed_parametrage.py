@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.etablissement_defaults import ADRESSE, CODE, COMMUNE, NOM, PREFECTURE, REGION
 from app.models.parametrage import (
     AnneeScolaire,
     Bareme,
@@ -91,12 +92,12 @@ async def seed_parametrage(db: AsyncSession) -> None:
         return
 
     etab = Etablissement(
-        nom="Groupe Scolaire Privé Fodeba Keita",
-        code="GSPFK",
-        adresse="Commune de Ratoma, Conakry",
-        region="Conakry",
-        prefecture="Conakry",
-        commune="Ratoma",
+        nom=NOM,
+        code=CODE,
+        adresse=ADRESSE,
+        region=REGION,
+        prefecture=PREFECTURE,
+        commune=COMMUNE,
         telephone="+224621234567",
         email="contact@fodebakeita.gn",
         devise_principale="GNF",

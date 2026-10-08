@@ -1,7 +1,7 @@
 # Rapport de recette — GSP Fodeba Keita
 
 **Projet :** GSP — Groupe scolaire privé (plateforme de gestion)  
-**Établissement :** Groupe Scolaire Privé Fodeba Keita — Conakry  
+**Établissement :** Groupe Scolaire Privé Fodeba Keita — Commune de Matam, Conakry  
 **Version :** MVP (Sprints 0–19)  
 **Date :** _______________
 

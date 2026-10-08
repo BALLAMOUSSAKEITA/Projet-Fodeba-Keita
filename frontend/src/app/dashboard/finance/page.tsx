@@ -15,7 +15,8 @@ import {
 } from "@/lib/api/paiements";
 import { getClasseEleves } from "@/lib/api/classes";
 import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
-import { listClasses, listNiveaux, listTypesFrais } from "@/lib/api/parametrage";
+import { getEtablissement, listClasses, listNiveaux, listTypesFrais } from "@/lib/api/parametrage";
+import { formatEtablissementAdresse } from "@/lib/etablissementDefaults";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
 import type { Niveau } from "@/types/parametrage";
@@ -63,10 +64,23 @@ export default function FinancePage() {
   const [loadingTarifs, setLoadingTarifs] = useState(false);
   const [savingNiveauId, setSavingNiveauId] = useState<string | null>(null);
   const [downloadingRecuId, setDownloadingRecuId] = useState<string | null>(null);
+  const [etabNom, setEtabNom] = useState<string | undefined>();
+  const [etabAdresse, setEtabAdresse] = useState<string | undefined>();
 
   const canCollect = hasPermission("payments.collect");
   const canView = canCollect || hasPermission("payments.view");
   const canCancel = canCollect;
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    getEtablissement(token)
+      .then((e) => {
+        setEtabNom(e.nom);
+        setEtabAdresse(formatEtablissementAdresse(e.adresse, e.commune));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const token = getToken();
@@ -369,6 +383,8 @@ export default function FinancePage() {
                 <p className="mb-3 text-sm font-medium text-emerald-800">Paiement enregistré — reçu disponible</p>
                 <RecuPaiementCard
                   paiement={lastPaiement}
+                  etablissementNom={etabNom}
+                  etablissementAdresse={etabAdresse}
                   anneeLibelle={anneeLibelle}
                   classeNom={classes.find((c) => c.id === classeId)?.nom}
                   resteApresPaiement={situation ? Number(situation.total_restant) : null}

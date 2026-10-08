@@ -1,7 +1,7 @@
 # Suivi des sprints — GSP Fodeba Keita
 
 **Projet :** GSP — Groupe scolaire privé (plateforme de gestion)  
-**Établissement :** Groupe Scolaire Privé Fodeba Keita — Conakry, Guinée  
+**Établissement :** Groupe Scolaire Privé Fodeba Keita — Commune de Matam, Conakry, Guinée  
 **Stack :** FastAPI · Next.js · PostgreSQL  
 **Durée par sprint :** 2 semaines  
 

@@ -35,7 +35,7 @@ async def test_create_eleve_with_matricule(client, admin_token):
             "date_naissance": "2015-03-12",
             "lieu_naissance": "Conakry",
             "nationalite": "Guinéenne",
-            "adresse": "Ratoma",
+            "adresse": "Matam",
             "classe_id": classe["id"],
             "tuteurs": [
                 {
