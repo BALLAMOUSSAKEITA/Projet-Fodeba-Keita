@@ -75,7 +75,7 @@ export function clearSession(): void {
 }
 
 export const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Super administrateur",
+  super_admin: "Gestionnaire",
   directeur: "Directeur",
   secretaire: "Secrétaire",
   econome: "Économe",

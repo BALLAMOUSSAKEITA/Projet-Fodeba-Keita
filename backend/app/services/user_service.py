@@ -137,7 +137,7 @@ async def delete_user_permanent(db: AsyncSession, user_id: UUID, actor_id: UUID)
         if super_count <= 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Impossible de supprimer le dernier super administrateur",
+                detail="Impossible de supprimer le dernier gestionnaire",
             )
 
     await db.delete(user)

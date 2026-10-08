@@ -50,7 +50,7 @@ npm run dev
 
 | Email | Mot de passe | Rôle |
 |-------|--------------|------|
-| admin@fodebakeita.gn | admin123 | Super admin |
+| admin@fodebakeita.gn | admin123 | Gestionnaire |
 | directeur@fodebakeita.gn | directeur123 | Directeur |
 | enseignant@fodebakeita.gn | enseignant123 | Enseignant |
 

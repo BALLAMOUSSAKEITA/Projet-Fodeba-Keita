@@ -8,7 +8,7 @@ from app.models.role import Permission, Role
 ROLES = [
     {
         "code": "super_admin",
-        "label": "Super administrateur",
+        "label": "Gestionnaire",
         "description": "Administration complète de la plateforme",
         "permissions": ["*"],
     },

@@ -55,7 +55,7 @@ npm test
 
 | Rôle | E-mail | Mot de passe |
 |------|--------|--------------|
-| Super admin | `admin@fodebakeita.gn` | `admin123` |
+| Gestionnaire | `admin@fodebakeita.gn` | `admin123` |
 | Directeur | `directeur@fodebakeita.gn` | `directeur123` |
 | Enseignant | `enseignant@fodebakeita.gn` | `enseignant123` |
 | Parent | `parent@fodebakeita.gn` | `parent123` |

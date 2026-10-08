@@ -84,6 +84,6 @@ async def require_super_admin(current_user: User = Depends(get_current_user)) ->
     if current_user.role.code != "super_admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Réservé au super administrateur",
+            detail="Réservé au gestionnaire",
         )
     return current_user
