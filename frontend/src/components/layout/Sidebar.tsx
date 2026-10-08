@@ -21,7 +21,7 @@ export function Sidebar({ mobileOpen = false, onNavigate }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 flex w-[min(288px,88vw)] flex-col bg-slate-900 shadow-xl transition-transform duration-200 ease-out lg:static lg:z-auto lg:w-[260px] lg:shrink-0 lg:translate-x-0 lg:shadow-none ${
+      className={`fd-sidebar fixed inset-y-0 left-0 z-50 flex w-[min(288px,88vw)] flex-col shadow-xl transition-transform duration-200 ease-out lg:static lg:z-auto lg:w-[260px] lg:shrink-0 lg:translate-x-0 lg:shadow-none ${
         mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}
       aria-hidden={!mobileOpen ? undefined : false}
@@ -72,8 +72,9 @@ export function Sidebar({ mobileOpen = false, onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-slate-700/50 px-5 py-4">
-        <p className="text-xs text-slate-500">Conakry, Guinée</p>
+      <div className="border-t border-white/10 px-5 py-4">
+        <p className="text-xs font-medium text-slate-400">Commune de Matam</p>
+        <p className="text-[11px] text-slate-500">Conakry, Guinée</p>
       </div>
     </aside>
   );

@@ -49,83 +49,86 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const summaryRows = useMemo(() => {
+  const statCards = useMemo(() => {
     if (!kpi) return [];
-    const rows: { label: string; value: string }[] = [];
+    const cards: { label: string; value: string }[] = [];
     if (showScolarite) {
-      rows.push({ label: "Élèves inscrits", value: String(kpi.total_eleves) });
-      rows.push({ label: "Classes", value: String(kpi.total_classes) });
+      cards.push({ label: "Élèves inscrits", value: String(kpi.total_eleves) });
+      cards.push({ label: "Classes", value: String(kpi.total_classes) });
     }
     if (showFinance) {
-      rows.push({ label: "Recettes du mois", value: fmt(kpi.recettes_mois) });
-      rows.push({
-        label: "Impayés",
-        value: `${fmt(kpi.total_impayes)} (${kpi.nombre_impayes} élève(s))`,
-      });
+      cards.push({ label: "Recettes du mois", value: fmt(kpi.recettes_mois) });
+      cards.push({ label: "Impayés", value: fmt(kpi.total_impayes) });
+      cards.push({ label: "Élèves en impayé", value: String(kpi.nombre_impayes) });
     }
     if (showPersonnel) {
-      rows.push({ label: "Personnel actif", value: String(kpi.total_personnel) });
+      cards.push({ label: "Personnel actif", value: String(kpi.total_personnel) });
     }
-    return rows;
+    return cards;
   }, [kpi, showScolarite, showFinance, showPersonnel]);
 
   const roleLabel = user ? (ROLE_LABELS[user.role] ?? user.role) : "";
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Bonjour";
+    if (h < 18) return "Bon après-midi";
+    return "Bonsoir";
+  })();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <header>
-        <h2 className="text-xl font-semibold text-slate-900">Tableau de bord</h2>
-        {user && (
-          <p className="mt-1 text-sm text-slate-600">
-            {user.prenom} {user.nom}
-            {roleLabel ? ` · ${roleLabel}` : ""}
-          </p>
-        )}
-      </header>
+    <div className="space-y-8">
+      <div className="fd-welcome-banner relative">
+        <div className="relative z-[1]">
+          <p className="text-sm font-medium text-teal-100/90">{greeting}</p>
+          <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">
+            {user ? `${user.prenom} ${user.nom}` : "Tableau de bord"}
+          </h2>
+          {roleLabel && <p className="mt-1 text-sm text-teal-50/80">{roleLabel}</p>}
+          {!loading && kpi?.annee_libelle && (
+            <p className="mt-3 inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+              Année scolaire {kpi.annee_libelle}
+            </p>
+          )}
+        </div>
+      </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="aw-error" role="alert">
           {error}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-          <h3 className="text-sm font-semibold text-slate-900">Synthèse</h3>
-          <p className="text-xs text-slate-500">
-            {loading
-              ? "Chargement…"
-              : kpi?.annee_libelle
-                ? `Année scolaire : ${kpi.annee_libelle}`
-                : "Année scolaire non configurée"}
-          </p>
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-2">
+          <h3 className="text-sm font-semibold text-slate-900">Indicateurs clés</h3>
+          {canReports && !loading && (
+            <Link href="/dashboard/rapports" className="aw-link text-sm">
+              Rapports détaillés →
+            </Link>
+          )}
         </div>
 
         {loading ? (
-          <p className="px-4 py-6 text-sm text-slate-500">Chargement des chiffres…</p>
-        ) : summaryRows.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-slate-500">
-            Aucun indicateur disponible pour votre profil. Utilisez les raccourcis ci-dessous.
-          </p>
-        ) : (
-          <dl className="divide-y divide-slate-100 sm:grid sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-3">
-            {summaryRows.map((row) => (
-              <div
-                key={row.label}
-                className="flex items-baseline justify-between gap-4 px-4 py-3 sm:block sm:border-r sm:border-slate-100 last:sm:border-r-0"
-              >
-                <dt className="text-sm text-slate-600">{row.label}</dt>
-                <dd className="text-base font-semibold tabular-nums text-slate-900">{row.value}</dd>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="fd-stat-card">
+                <div className="aw-skeleton mb-2 h-4 w-24" />
+                <div className="aw-skeleton h-8 w-32" />
               </div>
             ))}
-          </dl>
-        )}
-
-        {canReports && !loading && (
-          <div className="border-t border-slate-200 px-4 py-3">
-            <Link href="/dashboard/rapports" className="text-sm font-medium text-teal-700 hover:underline">
-              Ouvrir les rapports détaillés
-            </Link>
+          </div>
+        ) : statCards.length === 0 ? (
+          <div className="fd-panel px-4 py-8 text-center text-sm text-slate-500">
+            Aucun indicateur pour votre profil. Utilisez les accès rapides ci-dessous.
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {statCards.map((card) => (
+              <div key={card.label} className="fd-stat-card">
+                <p className="fd-stat-label">{card.label}</p>
+                <p className="fd-stat-value">{card.value}</p>
+              </div>
+            ))}
           </div>
         )}
       </section>
@@ -133,14 +136,13 @@ export default function DashboardPage() {
       {shortcuts.length > 0 && (
         <section>
           <h3 className="mb-3 text-sm font-semibold text-slate-900">Accès rapide</h3>
-          <ul className="grid gap-2 sm:grid-cols-2">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {shortcuts.map((item) => (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 hover:border-slate-300 hover:bg-slate-50"
-                >
-                  <NavIcon name={item.icon} className="h-4 w-4 shrink-0 text-slate-500" />
+                <Link href={item.href} className="fd-shortcut-link">
+                  <span className="fd-shortcut-icon">
+                    <NavIcon name={item.icon} className="h-4 w-4" />
+                  </span>
                   {item.label}
                 </Link>
               </li>

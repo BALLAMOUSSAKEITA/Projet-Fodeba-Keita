@@ -27,7 +27,7 @@ export function DashboardShell({ user, children }: { user: UserInfo; children: R
   }, [mobileNavOpen]);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-slate-50 lg:flex-row">
+    <div className="flex min-h-full flex-1 flex-col lg:flex-row">
       {mobileNavOpen && (
         <button
           type="button"
@@ -43,7 +43,7 @@ export function DashboardShell({ user, children }: { user: UserInfo; children: R
         <AnneeScolaireProvider>
           <Header user={user} onMenuClick={() => setMobileNavOpen(true)} />
           <main className="dashboard-main flex-1 overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6">
-            {children}
+            <div className="fd-app-content mx-auto w-full max-w-[1280px]">{children}</div>
           </main>
         </AnneeScolaireProvider>
       </div>

@@ -45,7 +45,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-full flex-1">
-      <div className="hidden w-[420px] flex-col justify-between bg-slate-900 p-10 lg:flex">
+      <div className="fd-login-panel hidden w-[420px] flex-col justify-between p-10 lg:flex">
         <div>
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-teal-600">
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
@@ -64,18 +64,18 @@ export default function LoginPage() {
             <br />
             Fodeba Keita
           </h1>
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-            Gestion des inscriptions, classes, finances et personnel.
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-teal-100/70">
+            Inscriptions, classes, finances et personnel — Commune de Matam, Conakry.
           </p>
         </div>
-        <p className="text-xs text-slate-500">Conakry, Guinée</p>
+        <p className="text-xs text-teal-200/50">GSP Fodeba Keita</p>
       </div>
 
-      <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8 sm:px-6 sm:py-12">
+      <div className="dashboard-main flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
           <LogoLight className="mb-6 lg:hidden sm:mb-8" />
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+          <div className="fd-login-card bg-white p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-slate-900">Connexion</h2>
             <p className="mt-2 text-sm text-slate-500">Identifiants fournis par l&apos;administration</p>
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                  className="aw-input"
                   placeholder="nom@fodebakeita.gn"
                 />
               </div>
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                  className="aw-input"
                 />
               </div>
 
@@ -123,7 +123,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="fd-btn-primary w-full py-2.5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "Connexion en cours…" : "Se connecter"}
               </button>

@@ -25,7 +25,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   const title = getPageTitle(pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2 shadow-sm sm:min-h-16 sm:gap-3 sm:px-4 lg:px-6">
+    <header className="fd-shell-header sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-4 lg:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <button
           type="button"
@@ -45,7 +45,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               <select
                 value={anneeId}
                 onChange={(e) => setAnneeId(e.target.value)}
-                className="max-w-full rounded-md border border-slate-200 bg-white py-1 pl-2 pr-7 text-xs text-slate-700"
+                className="aw-input max-w-full py-1.5 pl-2 pr-7 text-xs"
               >
                 {annees.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -62,7 +62,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             <select
               value={anneeId}
               onChange={(e) => setAnneeId(e.target.value)}
-              className="max-w-[9rem] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 md:max-w-none"
+              className="aw-input max-w-[9rem] py-1.5 text-sm md:max-w-none"
             >
               {annees.map((a) => (
                 <option key={a.id} value={a.id}>
