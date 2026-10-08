@@ -8,6 +8,20 @@ async def _get_niveau_3a(client, admin_token):
 
 
 @pytest.mark.asyncio
+async def test_create_eleve_minimal_optional_fields(client, admin_token):
+    response = await client.post(
+        "/api/v1/eleves",
+        headers={"Authorization": f"Bearer {admin_token}"},
+        json={},
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["matricule"].startswith("2026-ELV-")
+    assert data["nom"] is None
+    assert data["inscriptions"] == []
+
+
+@pytest.mark.asyncio
 async def test_create_eleve_with_matricule(client, admin_token):
     niveau = await _get_niveau_3a(client, admin_token)
     classe = await get_classe_for_niveau(client, admin_token, niveau["id"])
@@ -22,7 +36,6 @@ async def test_create_eleve_with_matricule(client, admin_token):
             "lieu_naissance": "Conakry",
             "nationalite": "Guinéenne",
             "adresse": "Ratoma",
-            "niveau_id": niveau["id"],
             "classe_id": classe["id"],
             "tuteurs": [
                 {
@@ -57,7 +70,6 @@ async def test_list_eleves_with_search(client, admin_token):
             "prenoms": "Fatoumata",
             "sexe": "F",
             "date_naissance": "2016-07-20",
-            "niveau_id": niveau["id"],
             "classe_id": classe["id"],
             "tuteurs": [
                 {
@@ -130,7 +142,6 @@ async def test_get_eleve_detail(client, admin_token):
             "prenoms": "Kadiatou",
             "sexe": "F",
             "date_naissance": "2015-11-05",
-            "niveau_id": niveau["id"],
             "classe_id": classe["id"],
             "tuteurs": [
                 {"type": "tuteur", "nom": "Soumah", "prenoms": "Mariama", "telephone": "+224624444444"}
@@ -179,7 +190,6 @@ async def test_teacher_can_view_eleves(client, teacher_token, admin_token):
             "prenoms": "Aboubacar",
             "sexe": "M",
             "date_naissance": "2015-05-10",
-            "niveau_id": niveau["id"],
             "classe_id": classe["id"],
             "tuteurs": [
                 {"type": "pere", "nom": "Kourouma", "prenoms": "Ali", "telephone": "+224625555555"}

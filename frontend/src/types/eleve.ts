@@ -60,22 +60,21 @@ export interface EleveListResponse {
 }
 
 export interface CreateEleveRequest {
-  nom: string;
-  prenoms: string;
-  sexe: string;
-  date_naissance: string;
+  nom?: string;
+  prenoms?: string;
+  sexe?: string;
+  date_naissance?: string;
   lieu_naissance?: string;
   nationalite?: string;
   adresse?: string;
   groupe_sanguin?: string;
   allergies?: string;
-  niveau_id: string;
-  classe_id: string;
-  tuteurs: {
-    type: string;
-    nom: string;
-    prenoms: string;
-    telephone: string;
+  classe_id?: string;
+  tuteurs?: {
+    type?: string;
+    nom?: string;
+    prenoms?: string;
+    telephone?: string;
     profession?: string;
     adresse?: string;
     email?: string;
@@ -83,7 +82,7 @@ export interface CreateEleveRequest {
 }
 
 export interface TransfertEntrantRequest extends CreateEleveRequest {
-  ecole_origine: string;
+  ecole_origine?: string;
   date_transfert?: string;
   observations?: string;
 }

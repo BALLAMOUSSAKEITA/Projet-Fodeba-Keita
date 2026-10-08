@@ -5,10 +5,10 @@ from pydantic import BaseModel, Field
 
 
 class TuteurBase(BaseModel):
-    type: str = Field(..., pattern=r"^(pere|mere|tuteur)$")
-    nom: str = Field(..., min_length=1, max_length=100)
-    prenoms: str = Field(..., min_length=1, max_length=150)
-    telephone: str = Field(..., min_length=6, max_length=20)
+    type: str = Field(default="pere", pattern=r"^(pere|mere|tuteur)$")
+    nom: str | None = Field(default=None, max_length=100)
+    prenoms: str | None = Field(default=None, max_length=150)
+    telephone: str | None = Field(default=None, max_length=20)
     profession: str | None = None
     adresse: str | None = None
     email: str | None = None
@@ -73,19 +73,19 @@ class InscriptionBrief(BaseModel):
 
 
 class EleveCreate(BaseModel):
-    nom: str = Field(..., min_length=1, max_length=100)
-    prenoms: str = Field(..., min_length=1, max_length=150)
-    sexe: str = Field(..., pattern=r"^(M|F)$")
-    date_naissance: date
+    nom: str | None = Field(default=None, max_length=100)
+    prenoms: str | None = Field(default=None, max_length=150)
+    sexe: str | None = Field(default=None, pattern=r"^(M|F)$")
+    date_naissance: date | None = None
     lieu_naissance: str | None = None
-    nationalite: str | None = "Guinéenne"
+    nationalite: str | None = None
     adresse: str | None = None
     photo_url: str | None = None
     groupe_sanguin: str | None = None
     allergies: str | None = None
-    niveau_id: UUID
-    classe_id: UUID
-    tuteurs: list[TuteurCreate] = Field(..., min_length=1)
+    classe_id: UUID | None = None
+    niveau_id: UUID | None = None
+    tuteurs: list[TuteurCreate] = Field(default_factory=list)
 
 
 class EleveUpdate(BaseModel):
@@ -109,10 +109,10 @@ class ReinscriptionRequest(BaseModel):
 class EleveListItem(BaseModel):
     id: UUID
     matricule: str
-    nom: str
-    prenoms: str
-    sexe: str
-    date_naissance: date
+    nom: str | None
+    prenoms: str | None
+    sexe: str | None
+    date_naissance: date | None
     statut: str
     niveau_libelle: str | None = None
     niveau_code: str | None = None
@@ -124,10 +124,10 @@ class EleveListItem(BaseModel):
 class EleveResponse(BaseModel):
     id: UUID
     matricule: str
-    nom: str
-    prenoms: str
-    sexe: str
-    date_naissance: date
+    nom: str | None
+    prenoms: str | None
+    sexe: str | None
+    date_naissance: date | None
     lieu_naissance: str | None
     nationalite: str | None
     adresse: str | None
@@ -152,7 +152,7 @@ class AffecterClasseRequest(BaseModel):
 
 
 class TransfertEntrantCreate(EleveCreate):
-    ecole_origine: str = Field(..., min_length=2, max_length=255)
+    ecole_origine: str | None = Field(default=None, max_length=255)
     date_transfert: date | None = None
     observations: str | None = None
 

@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEleve } from "@/lib/api/eleves";
-import { listClasses, listNiveaux } from "@/lib/api/parametrage";
+import { listClasses } from "@/lib/api/parametrage";
 import { ApiError } from "@/lib/api/client";
 import { getToken, hasPermission } from "@/lib/auth/session";
 import { useAnneeScolaire } from "@/components/layout/AnneeScolaireProvider";
-import type { Classe, Niveau } from "@/types/parametrage";
+import type { CreateEleveRequest } from "@/types/eleve";
+import type { Classe } from "@/types/parametrage";
 
 const EMPTY_TUTEUR = {
   type: "pere",
@@ -18,10 +19,28 @@ const EMPTY_TUTEUR = {
   profession: "",
 };
 
+function optionalField(value: string): string | undefined {
+  const v = value.trim();
+  return v || undefined;
+}
+
+function buildTuteurs(
+  tuteurs: typeof EMPTY_TUTEUR[],
+): CreateEleveRequest["tuteurs"] {
+  return tuteurs
+    .map((t) => ({
+      type: t.type,
+      nom: optionalField(t.nom),
+      prenoms: optionalField(t.prenoms),
+      telephone: optionalField(t.telephone),
+      profession: optionalField(t.profession),
+    }))
+    .filter((t) => t.nom || t.prenoms || t.telephone || t.profession);
+}
+
 export default function NouvelElevePage() {
   const router = useRouter();
   const { anneeId } = useAnneeScolaire();
-  const [niveaux, setNiveaux] = useState<Niveau[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,14 +48,13 @@ export default function NouvelElevePage() {
   const [form, setForm] = useState({
     nom: "",
     prenoms: "",
-    sexe: "M",
+    sexe: "",
     date_naissance: "",
     lieu_naissance: "",
-    nationalite: "Guinéenne",
+    nationalite: "",
     adresse: "",
     groupe_sanguin: "",
     allergies: "",
-    niveau_id: "",
     classe_id: "",
   });
   const [tuteurs, setTuteurs] = useState([{ ...EMPTY_TUTEUR }]);
@@ -44,34 +62,12 @@ export default function NouvelElevePage() {
   useEffect(() => {
     const token = getToken();
     if (!token || !anneeId) return;
-    Promise.all([listNiveaux(token), listClasses(token, anneeId)])
-      .then(([niveauxData, classesData]) => {
-        setNiveaux(niveauxData);
-        setClasses(classesData);
-        if (niveauxData.length > 0) {
-          const niveauId = niveauxData[0].id;
-          const firstClasse = classesData.find((c) => c.niveau_id === niveauId);
-          setForm((f) => ({
-            ...f,
-            niveau_id: niveauId,
-            classe_id: firstClasse?.id ?? "",
-          }));
-        }
-      })
+    listClasses(token, anneeId)
+      .then(setClasses)
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Impossible de charger niveaux et classes");
+        setError(err instanceof ApiError ? err.message : "Impossible de charger les classes");
       });
   }, [anneeId]);
-
-  const classesForNiveau = useMemo(
-    () => classes.filter((c) => c.niveau_id === form.niveau_id),
-    [classes, form.niveau_id],
-  );
-
-  function onNiveauChange(niveauId: string) {
-    const firstClasse = classes.find((c) => c.niveau_id === niveauId);
-    setForm((f) => ({ ...f, niveau_id: niveauId, classe_id: firstClasse?.id ?? "" }));
-  }
 
   if (!hasPermission("students.enroll")) {
     return (
@@ -85,17 +81,23 @@ export default function NouvelElevePage() {
     e.preventDefault();
     const token = getToken();
     if (!token) return;
-    if (!form.classe_id) {
-      setError("Choisissez une classe pour ce niveau.");
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
-      const eleve = await createEleve(token, {
-        ...form,
-        tuteurs: tuteurs.filter((t) => t.nom && t.telephone),
-      });
+      const payload: CreateEleveRequest = {
+        nom: optionalField(form.nom),
+        prenoms: optionalField(form.prenoms),
+        sexe: form.sexe === "M" || form.sexe === "F" ? form.sexe : undefined,
+        date_naissance: form.date_naissance || undefined,
+        lieu_naissance: optionalField(form.lieu_naissance),
+        nationalite: optionalField(form.nationalite),
+        adresse: optionalField(form.adresse),
+        groupe_sanguin: optionalField(form.groupe_sanguin),
+        allergies: optionalField(form.allergies),
+        classe_id: form.classe_id || undefined,
+        tuteurs: buildTuteurs(tuteurs),
+      };
+      const eleve = await createEleve(token, payload);
       router.push(`/dashboard/eleves/${eleve.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erreur lors de l'inscription");
@@ -111,6 +113,7 @@ export default function NouvelElevePage() {
           ← Retour à la liste
         </Link>
         <h2 className="mt-2 text-2xl font-bold text-slate-900">Inscrire un nouvel élève</h2>
+        <p className="mt-1 text-sm text-slate-500">Tous les champs sont facultatifs.</p>
       </div>
 
       {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -119,21 +122,26 @@ export default function NouvelElevePage() {
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-semibold text-slate-900">Identité de l&apos;élève</h3>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nom *" value={form.nom} onChange={(v) => setForm({ ...form, nom: v })} required />
-            <Field label="Prénoms *" value={form.prenoms} onChange={(v) => setForm({ ...form, prenoms: v })} required />
+            <Field label="Nom" value={form.nom} onChange={(v) => setForm({ ...form, nom: v })} />
+            <Field label="Prénoms" value={form.prenoms} onChange={(v) => setForm({ ...form, prenoms: v })} />
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Sexe *</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Sexe</label>
               <select
                 value={form.sexe}
                 onChange={(e) => setForm({ ...form, sexe: e.target.value })}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                required
               >
+                <option value="">—</option>
                 <option value="M">Garçon</option>
                 <option value="F">Fille</option>
               </select>
             </div>
-            <Field label="Date de naissance *" type="date" value={form.date_naissance} onChange={(v) => setForm({ ...form, date_naissance: v })} required />
+            <Field
+              label="Date de naissance"
+              type="date"
+              value={form.date_naissance}
+              onChange={(v) => setForm({ ...form, date_naissance: v })}
+            />
             <Field label="Lieu de naissance" value={form.lieu_naissance} onChange={(v) => setForm({ ...form, lieu_naissance: v })} />
             <Field label="Nationalité" value={form.nationalite} onChange={(v) => setForm({ ...form, nationalite: v })} />
             <Field label="Adresse" value={form.adresse} onChange={(v) => setForm({ ...form, adresse: v })} />
@@ -147,35 +155,19 @@ export default function NouvelElevePage() {
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Niveau *</label>
-              <select
-                value={form.niveau_id}
-                onChange={(e) => onNiveauChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                required
-              >
-                {niveaux.map((n) => (
-                  <option key={n.id} value={n.id}>{n.libelle}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Classe *</label>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-slate-700">Classe</label>
               <select
                 value={form.classe_id}
                 onChange={(e) => setForm({ ...form, classe_id: e.target.value })}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                required
-                disabled={classesForNiveau.length === 0}
               >
-                {classesForNiveau.length === 0 ? (
-                  <option value="">Aucune classe pour ce niveau</option>
-                ) : (
-                  classesForNiveau.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nom}</option>
-                  ))
-                )}
+                <option value="">— Aucune pour l&apos;instant —</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nom}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -201,9 +193,9 @@ export default function NouvelElevePage() {
                   <option value="tuteur">Tuteur légal</option>
                 </select>
               </div>
-              <Field label="Nom *" value={t.nom} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], nom: v }; setTuteurs(c); }} />
-              <Field label="Prénoms *" value={t.prenoms} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], prenoms: v }; setTuteurs(c); }} />
-              <Field label="Téléphone *" value={t.telephone} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], telephone: v }; setTuteurs(c); }} />
+              <Field label="Nom" value={t.nom} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], nom: v }; setTuteurs(c); }} />
+              <Field label="Prénoms" value={t.prenoms} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], prenoms: v }; setTuteurs(c); }} />
+              <Field label="Téléphone" value={t.telephone} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], telephone: v }; setTuteurs(c); }} />
               <Field label="Profession" value={t.profession} onChange={(v) => { const c = [...tuteurs]; c[i] = { ...c[i], profession: v }; setTuteurs(c); }} />
             </div>
           ))}
@@ -218,7 +210,7 @@ export default function NouvelElevePage() {
 
         <button
           type="submit"
-          disabled={loading || !form.classe_id}
+          disabled={loading}
           className="rounded-lg bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
         >
           {loading ? "Inscription..." : "Inscrire l'élève"}
@@ -233,13 +225,11 @@ function Field({
   value,
   onChange,
   type = "text",
-  required,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
-  required?: boolean;
 }) {
   return (
     <div>
@@ -248,7 +238,6 @@ function Field({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        required={required}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
     </div>

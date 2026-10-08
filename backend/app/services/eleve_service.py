@@ -46,12 +46,29 @@ NIVEAU_MATRICULE_MAP = {
 }
 
 
+def _optional_str(value: str | None) -> str | None:
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None
+
+
+def _tuteur_filled(data: TuteurCreate) -> bool:
+    return any(
+        _optional_str(v)
+        for v in (data.nom, data.prenoms, data.telephone, data.profession, data.adresse, data.email)
+    )
+
+
 async def generate_matricule(
     db: AsyncSession,
-    niveau: Niveau,
+    niveau: Niveau | None,
     annee: AnneeScolaire,
 ) -> str:
-    prefix_code = NIVEAU_MATRICULE_MAP.get(niveau.code, niveau.code)
+    if niveau is None:
+        prefix_code = "ELV"
+    else:
+        prefix_code = NIVEAU_MATRICULE_MAP.get(niveau.code, niveau.code)
     year = annee.date_debut.year
     pattern_prefix = f"{year}-{prefix_code}-"
 
@@ -181,47 +198,59 @@ async def create_eleve(db: AsyncSession, data: EleveCreate) -> Eleve:
             detail="Aucune année scolaire active. Configurez l'établissement d'abord.",
         )
 
-    niveau = await parametrage_service._get_niveau(db, data.niveau_id)
+    if data.niveau_id and data.classe_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Indiquez uniquement la classe (le niveau est déduit automatiquement).",
+        )
+
+    classe = None
+    niveau: Niveau | None = None
+    if data.classe_id:
+        classe = await classe_service.verify_capacity(db, data.classe_id, annee.id)
+        niveau = await parametrage_service._get_niveau(db, classe.niveau_id)
+    elif data.niveau_id:
+        niveau = await parametrage_service._get_niveau(db, data.niveau_id)
+
     matricule = await generate_matricule(db, niveau, annee)
 
     eleve = Eleve(
         matricule=matricule,
-        nom=data.nom.strip(),
-        prenoms=data.prenoms.strip(),
+        nom=_optional_str(data.nom),
+        prenoms=_optional_str(data.prenoms),
         sexe=data.sexe,
         date_naissance=data.date_naissance,
-        lieu_naissance=data.lieu_naissance,
-        nationalite=data.nationalite,
-        adresse=data.adresse,
-        photo_url=data.photo_url,
-        groupe_sanguin=data.groupe_sanguin,
-        allergies=data.allergies,
+        lieu_naissance=_optional_str(data.lieu_naissance),
+        nationalite=_optional_str(data.nationalite),
+        adresse=_optional_str(data.adresse),
+        photo_url=_optional_str(data.photo_url),
+        groupe_sanguin=_optional_str(data.groupe_sanguin),
+        allergies=_optional_str(data.allergies),
         statut=StatutEleve.ACTIF.value,
     )
     db.add(eleve)
     await db.flush()
 
     for tuteur_data in data.tuteurs:
-        db.add(Tuteur(eleve_id=eleve.id, **tuteur_data.model_dump()))
+        if not _tuteur_filled(tuteur_data):
+            continue
+        payload = tuteur_data.model_dump()
+        for key in ("nom", "prenoms", "telephone", "profession", "adresse", "email"):
+            payload[key] = _optional_str(payload.get(key))
+        db.add(Tuteur(eleve_id=eleve.id, **payload))
 
-    classe = await classe_service.verify_capacity(db, data.classe_id, annee.id)
-    if classe.niveau_id != niveau.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La classe ne correspond pas au niveau choisi",
+    if niveau is not None:
+        db.add(
+            Inscription(
+                eleve_id=eleve.id,
+                annee_scolaire_id=annee.id,
+                niveau_id=niveau.id,
+                classe_id=classe.id if classe else None,
+                type=TypeInscription.NOUVELLE.value,
+                date_inscription=date.today(),
+                statut=StatutEleve.ACTIF.value,
+            )
         )
-
-    db.add(
-        Inscription(
-            eleve_id=eleve.id,
-            annee_scolaire_id=annee.id,
-            niveau_id=niveau.id,
-            classe_id=classe.id,
-            type=TypeInscription.NOUVELLE.value,
-            date_inscription=date.today(),
-            statut=StatutEleve.ACTIF.value,
-        )
-    )
     await db.flush()
     return await get_eleve(db, eleve.id)
 
@@ -384,9 +413,9 @@ async def create_transfert_entrant(db: AsyncSession, data: TransfertEntrantCreat
         Transfert(
             eleve_id=eleve.id,
             type=TypeTransfert.ENTRANT.value,
-            ecole=data.ecole_origine,
+            ecole=_optional_str(data.ecole_origine) or "Non renseignée",
             date_transfert=data.date_transfert or date.today(),
-            observations=data.observations,
+            observations=_optional_str(data.observations),
         )
     )
     await db.flush()
