@@ -74,7 +74,7 @@ export function Sidebar({ mobileOpen = false, onNavigate }: SidebarProps) {
 
       <div className="border-t border-white/10 px-5 py-4">
         <p className="text-xs font-medium text-slate-400">Commune de Matam</p>
-        <p className="text-[11px] text-slate-500">Conakry, Guinée</p>
+        <p className="text-[11px] text-slate-500">Tél. 626 137 290</p>
       </div>
     </aside>
   );

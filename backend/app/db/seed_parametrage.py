@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.etablissement_defaults import ADRESSE, CODE, COMMUNE, NOM, PREFECTURE, REGION
+from app.core.etablissement_defaults import ADRESSE, CODE, COMMUNE, NOM, PREFECTURE, REGION, TELEPHONE
 from app.models.parametrage import (
     AnneeScolaire,
     Bareme,
@@ -98,7 +98,7 @@ async def seed_parametrage(db: AsyncSession) -> None:
         region=REGION,
         prefecture=PREFECTURE,
         commune=COMMUNE,
-        telephone="+224621234567",
+        telephone=TELEPHONE,
         email="contact@fodebakeita.gn",
         devise_principale="GNF",
     )

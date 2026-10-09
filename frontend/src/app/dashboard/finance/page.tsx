@@ -66,6 +66,7 @@ export default function FinancePage() {
   const [downloadingRecuId, setDownloadingRecuId] = useState<string | null>(null);
   const [etabNom, setEtabNom] = useState<string | undefined>();
   const [etabAdresse, setEtabAdresse] = useState<string | undefined>();
+  const [etabTelephone, setEtabTelephone] = useState<string | undefined>();
 
   const canCollect = hasPermission("payments.collect");
   const canView = canCollect || hasPermission("payments.view");
@@ -78,6 +79,7 @@ export default function FinancePage() {
       .then((e) => {
         setEtabNom(e.nom);
         setEtabAdresse(formatEtablissementAdresse(e.adresse, e.commune));
+        setEtabTelephone(e.telephone ?? undefined);
       })
       .catch(() => {});
   }, []);
@@ -385,6 +387,7 @@ export default function FinancePage() {
                   paiement={lastPaiement}
                   etablissementNom={etabNom}
                   etablissementAdresse={etabAdresse}
+                  etablissementTelephone={etabTelephone}
                   anneeLibelle={anneeLibelle}
                   classeNom={classes.find((c) => c.id === classeId)?.nom}
                   resteApresPaiement={situation ? Number(situation.total_restant) : null}

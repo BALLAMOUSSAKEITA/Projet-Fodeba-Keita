@@ -68,7 +68,7 @@ export default function LoginPage() {
             Inscriptions, classes, finances et personnel — Commune de Matam, Conakry.
           </p>
         </div>
-        <p className="text-xs text-teal-200/50">GSP Fodeba Keita</p>
+        <p className="text-xs text-teal-200/50">Tél. 626 137 290 · GSP Fodeba Keita</p>
       </div>
 
       <div className="dashboard-main flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-12">

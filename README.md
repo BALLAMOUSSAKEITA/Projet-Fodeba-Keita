@@ -54,6 +54,8 @@ npm run dev
 | directeur@fodebakeita.gn | directeur123 | Directeur |
 | enseignant@fodebakeita.gn | enseignant123 | Enseignant |
 
+Contact établissement : **626 137 290** (Commune de Matam, Conakry).
+
 ### API Auth (Sprint 3)
 
 | Méthode | Endpoint | Description |

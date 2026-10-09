@@ -1,7 +1,12 @@
 "use client";
 
 import { useRef } from "react";
-import { ETABLISSEMENT_ADRESSE, ETABLISSEMENT_NOM } from "@/lib/etablissementDefaults";
+import {
+  ETABLISSEMENT_ADRESSE,
+  ETABLISSEMENT_NOM,
+  ETABLISSEMENT_TELEPHONE_AFFICHAGE,
+  formatTelephoneAffichage,
+} from "@/lib/etablissementDefaults";
 import type { Paiement } from "@/types/paiements";
 
 const MODES: Record<string, string> = {
@@ -32,6 +37,7 @@ export function RecuPaiementCard({
   paiement,
   etablissementNom = ETABLISSEMENT_NOM,
   etablissementAdresse = ETABLISSEMENT_ADRESSE,
+  etablissementTelephone = ETABLISSEMENT_TELEPHONE_AFFICHAGE,
   anneeLibelle,
   classeNom,
   resteApresPaiement,
@@ -41,6 +47,7 @@ export function RecuPaiementCard({
   paiement: Paiement;
   etablissementNom?: string;
   etablissementAdresse?: string;
+  etablissementTelephone?: string;
   anneeLibelle?: string;
   classeNom?: string;
   resteApresPaiement?: number | null;
@@ -89,6 +96,9 @@ export function RecuPaiementCard({
           <p className="text-xs font-medium uppercase tracking-wider text-emerald-100">Reçu officiel</p>
           <h3 className="mt-1 text-base font-bold leading-snug">{etablissementNom}</h3>
           <p className="mt-1 text-xs text-emerald-100">{etablissementAdresse}</p>
+          <p className="mt-0.5 text-xs text-emerald-100">
+            Tél. {formatTelephoneAffichage(etablissementTelephone)}
+          </p>
           <p className="mt-0.5 text-xs text-emerald-100">Paiement scolarité</p>
         </div>
         <div className="flex justify-between border-b border-dashed border-emerald-200 px-4 py-2 text-xs text-slate-600">

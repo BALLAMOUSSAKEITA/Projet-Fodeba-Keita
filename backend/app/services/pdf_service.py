@@ -6,7 +6,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 
-from app.core.etablissement_defaults import ADRESSE, LIEU_DELIVRANCE, NOM
+from app.core.etablissement_defaults import (
+    ADRESSE,
+    LIEU_DELIVRANCE,
+    NOM,
+    format_telephone_affichage,
+    telephone_etablissement,
+)
 from app.models.eleve import Eleve
 from app.models.parametrage import Etablissement
 
@@ -30,10 +36,12 @@ def _draw_header(c: canvas.Canvas, etab: Etablissement | None, title: str) -> No
     nom = etab.nom if etab else NOM
     c.drawCentredString(A4[0] / 2, A4[1] - 2 * cm, nom)
     c.setFont("Helvetica", 10)
-    c.drawCentredString(A4[0] / 2, A4[1] - 2.6 * cm, _etab_adresse_ligne(etab))
+    c.drawCentredString(A4[0] / 2, A4[1] - 2.55 * cm, _etab_adresse_ligne(etab))
+    tel = format_telephone_affichage(telephone_etablissement(etab.telephone if etab else None))
+    c.drawCentredString(A4[0] / 2, A4[1] - 3.1 * cm, f"Tél. {tel}")
     c.setFont("Helvetica-Bold", 12)
-    c.drawCentredString(A4[0] / 2, A4[1] - 3.6 * cm, title)
-    c.line(2 * cm, A4[1] - 4 * cm, A4[0] - 2 * cm, A4[1] - 4 * cm)
+    c.drawCentredString(A4[0] / 2, A4[1] - 4 * cm, title)
+    c.line(2 * cm, A4[1] - 4.45 * cm, A4[0] - 2 * cm, A4[1] - 4.45 * cm)
 
 
 def generate_attestation_scolarite(eleve: Eleve, etab: Etablissement | None, annee_libelle: str) -> bytes:
@@ -41,7 +49,7 @@ def generate_attestation_scolarite(eleve: Eleve, etab: Etablissement | None, ann
     c = canvas.Canvas(buffer, pagesize=A4)
     _draw_header(c, etab, "ATTESTATION DE SCOLARITÉ")
 
-    y = A4[1] - 5.5 * cm
+    y = A4[1] - 5.95 * cm
     c.setFont("Helvetica", 11)
     lines = [
         "Je soussigné(e), Directeur du Groupe Scolaire Privé Fodeba Keita, certifie que :",
@@ -78,7 +86,7 @@ def generate_certificat_transfert(
     c = canvas.Canvas(buffer, pagesize=A4)
     _draw_header(c, etab, "CERTIFICAT DE TRANSFERT")
 
-    y = A4[1] - 5.5 * cm
+    y = A4[1] - 5.95 * cm
     c.setFont("Helvetica", 11)
     lines = [
         f"L'élève {eleve.prenoms} {eleve.nom}, matricule {eleve.matricule},",
@@ -387,12 +395,10 @@ def generate_recu_paiement(
     c.setFillColor(HexColor("#bbf7d0"))
     c.drawCentredString(card_x + card_w / 2, header_y + header_h - 1.95 * cm, "REÇU DE PAIEMENT — SCOLARITÉ")
 
-    contact_parts: list[str] = [_etab_adresse_ligne(etab)]
-    if etab:
-        if etab.telephone:
-            contact_parts.append(f"Tél. {etab.telephone}")
-        if etab.email:
-            contact_parts.append(str(etab.email))
+    tel = format_telephone_affichage(telephone_etablissement(etab.telephone if etab else None))
+    contact_parts: list[str] = [_etab_adresse_ligne(etab), f"Tél. {tel}"]
+    if etab and etab.email:
+        contact_parts.append(str(etab.email))
     if contact_parts:
         c.setFont("Helvetica", 7)
         c.setFillColor(HexColor("#71717a"))
